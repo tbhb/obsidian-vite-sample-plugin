@@ -51,34 +51,37 @@ describe('ViteSamplePlugin.saveSettings', () => {
 });
 
 describe('ViteSamplePlugin.refreshStatusBar', () => {
-  it('adds and updates a status bar item when enabled on desktop', () => {
+  it('adds and updates status bar items when enabled on desktop', () => {
     const plugin = makePlugin();
     plugin.settings = { ...DEFAULT_SETTINGS, enableStatusBar: true };
     Platform.isMobile = false;
 
     plugin.refreshStatusBar();
-    plugin.refreshStatusBar(); // second call hits the "already-exists" branch
+    plugin.refreshStatusBar(); // second call hits the "already-mounted" branch
 
-    expect(plugin.addStatusBarItem).toHaveBeenCalledTimes(1);
-    expect(plugin.statusBar.element?.textContent).toBe(DEFAULT_SETTINGS.greeting);
+    // One call per item: the grouped greeting item, plus the separate fruits item.
+    expect(plugin.addStatusBarItem).toHaveBeenCalledTimes(2);
+    expect(plugin.statusBar.items).toHaveLength(2);
+    expect(plugin.statusBar.items[0]?.textContent).toContain(DEFAULT_SETTINGS.greeting);
+    expect(plugin.statusBar.items[1]?.textContent).toBe('🍎🍌');
   });
 
-  it('removes the status bar item when toggled off', () => {
+  it('removes the status bar items when toggled off', () => {
     const plugin = makePlugin();
     plugin.settings = { ...DEFAULT_SETTINGS, enableStatusBar: true };
     plugin.refreshStatusBar();
-    expect(plugin.statusBar.element).not.toBeNull();
+    expect(plugin.statusBar.items).toHaveLength(2);
 
     plugin.settings.enableStatusBar = false;
     plugin.refreshStatusBar();
-    expect(plugin.statusBar.element).toBeNull();
+    expect(plugin.statusBar.items).toHaveLength(0);
   });
 
   it('is a no-op when toggled off and already absent', () => {
     const plugin = makePlugin();
     plugin.settings = { ...DEFAULT_SETTINGS, enableStatusBar: false };
     plugin.refreshStatusBar();
-    expect(plugin.statusBar.element).toBeNull();
+    expect(plugin.statusBar.items).toHaveLength(0);
   });
 
   it('does nothing on mobile', () => {
@@ -114,7 +117,7 @@ describe('ViteSamplePlugin.onload', () => {
     expect(plugin.__settingTabs).toHaveLength(1);
     expect(plugin.__protocolHandlers.has('vite-sample')).toBe(true);
     expect(plugin.__domEvents).toHaveLength(1);
-    expect(plugin.__statusBarItems).toHaveLength(1);
+    expect(plugin.__statusBarItems).toHaveLength(2);
     expect(plugin.registerInterval).toHaveBeenCalled();
 
     // Advance the timer past one tick to cover the interval callback body.

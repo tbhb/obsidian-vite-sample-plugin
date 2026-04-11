@@ -1,14 +1,11 @@
-import {
-  type Editor,
-  MarkdownView,
-  type Menu,
-  Notice,
-  Platform,
-  Plugin,
-  TFile,
-  type WorkspaceLeaf,
-} from 'obsidian';
-import { ViteSampleModal } from './modal';
+import { Plugin, type WorkspaceLeaf } from 'obsidian';
+import { registerCommandExamples } from './examples/commands';
+import { registerContextMenuExamples } from './examples/context-menus';
+import { registerDomEventExamples } from './examples/dom-events';
+import { registerProtocolHandlerExample } from './examples/protocol';
+import { registerRibbonExample } from './examples/ribbon';
+import { StatusBarExample } from './examples/status-bar';
+import { TickExample } from './examples/tick';
 import {
   DEFAULT_SETTINGS,
   mergeSettings,
@@ -21,164 +18,27 @@ import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from './view';
 export default class ViteSamplePlugin extends Plugin {
   settings: ViteSamplePluginSettings = DEFAULT_SETTINGS;
 
-  private statusBarEl: HTMLElement | null = null;
-  private tickHandle: number | null = null;
+  readonly statusBar = new StatusBarExample(this);
+  readonly tick = new TickExample(this);
 
   async onload(): Promise<void> {
     await this.loadSettings();
 
     this.registerView(VITE_SAMPLE_VIEW_TYPE, (leaf) => new ViteSampleView(leaf, this));
 
-    this.addRibbonIcon('sparkles', 'Open vite sample view', () => {
-      void this.activateView();
-    });
-
-    if (this.settings.enableStatusBar && !Platform.isMobile) {
-      this.statusBarEl = this.addStatusBarItem();
-      this.statusBarEl.setText(this.settings.greeting);
-    }
-
-    this.addCommand({
-      id: 'show-greeting-notice',
-      name: 'Show greeting notice',
-      callback: () => {
-        new Notice(this.settings.greeting);
-      },
-    });
-
-    this.addCommand({
-      id: 'open-sample-modal',
-      name: 'Open sample modal',
-      callback: () => {
-        new ViteSampleModal(this.app, this.settings.greeting).open();
-      },
-    });
-
-    this.addCommand({
-      id: 'insert-greeting',
-      name: 'Insert greeting at cursor',
-      editorCheckCallback: (checking, editor: Editor, view) => {
-        if (!(view instanceof MarkdownView)) {
-          return false;
-        }
-        if (!checking) {
-          editor.replaceSelection(this.settings.greeting);
-        }
-        return true;
-      },
-    });
-
-    this.addCommand({
-      id: 'uppercase-selection',
-      name: 'Uppercase current selection',
-      editorCallback: (editor: Editor) => {
-        editor.replaceSelection(editor.getSelection().toUpperCase());
-      },
-    });
-
-    this.addCommand({
-      id: 'wrap-selection-in-greeting',
-      name: 'Wrap selection in greeting',
-      editorCheckCallback: (checking, editor: Editor, view) => {
-        if (!(view instanceof MarkdownView)) {
-          return false;
-        }
-        const selection = editor.getSelection();
-        if (!selection) {
-          return false;
-        }
-        if (!checking) {
-          editor.replaceSelection(`${this.settings.greeting}: ${selection}`);
-        }
-        return true;
-      },
-    });
-
-    this.addCommand({
-      id: 'close-sample-view',
-      name: 'Close sample view',
-      checkCallback: (checking) => {
-        const leaves = this.app.workspace.getLeavesOfType(VITE_SAMPLE_VIEW_TYPE);
-        if (leaves.length === 0) {
-          return false;
-        }
-        if (!checking) {
-          this.app.workspace.detachLeavesOfType(VITE_SAMPLE_VIEW_TYPE);
-        }
-        return true;
-      },
-    });
-
-    this.addCommand({
-      id: 'open-sample-view',
-      name: 'Open sample view',
-      callback: () => {
-        void this.activateView();
-      },
-    });
-
-    this.registerEvent(
-      this.app.workspace.on('file-menu', (menu: Menu, file) => {
-        if (!(file instanceof TFile)) {
-          return;
-        }
-        menu.addSeparator();
-        menu.addItem((item) => {
-          item
-            .setTitle('Print file path')
-            .setIcon('document')
-            .onClick(() => {
-              new Notice(file.path);
-            });
-        });
-      }),
-    );
-
-    this.registerEvent(
-      this.app.workspace.on('editor-menu', (menu: Menu, editor, view) => {
-        if (!(view instanceof MarkdownView)) {
-          return;
-        }
-        menu.addSeparator();
-        menu.addItem((item) => {
-          item
-            .setTitle('Insert greeting')
-            .setIcon('message-square')
-            .onClick(() => {
-              editor.replaceSelection(this.settings.greeting);
-            });
-        });
-        const selection = editor.getSelection();
-        if (selection) {
-          menu.addItem((item) => {
-            item
-              .setTitle('Uppercase selection')
-              .setIcon('case-sensitive')
-              .onClick(() => {
-                editor.replaceSelection(selection.toUpperCase());
-              });
-          });
-        }
-      }),
-    );
-
+    registerRibbonExample(this);
+    this.statusBar.refresh();
+    registerCommandExamples(this);
+    registerContextMenuExamples(this);
     this.addSettingTab(new ViteSampleSettingTab(this.app, this));
+    registerProtocolHandlerExample(this);
+    registerDomEventExamples(this);
 
-    this.registerObsidianProtocolHandler('vite-sample', (params) => {
-      new Notice(`Protocol handler received: ${JSON.stringify(params)}`);
-    });
-
-    this.registerDomEvent(document, 'visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        this.refreshOpenViews();
-      }
-    });
-
-    this.startTick();
+    this.tick.start();
   }
 
   onunload(): void {
-    this.stopTick();
+    this.tick.stop();
   }
 
   onUserEnable(): void {
@@ -187,7 +47,7 @@ export default class ViteSamplePlugin extends Plugin {
 
   async onExternalSettingsChange(): Promise<void> {
     await this.loadSettings();
-    this.refreshStatusBar();
+    this.statusBar.refresh();
     this.refreshOpenViews();
   }
 
@@ -198,49 +58,21 @@ export default class ViteSamplePlugin extends Plugin {
 
   async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
-    this.refreshStatusBar();
+    this.statusBar.refresh();
     this.refreshOpenViews();
   }
 
+  // Settings tab callbacks use these thin delegates so the settings module
+  // stays decoupled from the example classes.
   refreshStatusBar(): void {
-    if (Platform.isMobile) {
-      return;
-    }
-    if (this.settings.enableStatusBar) {
-      if (!this.statusBarEl) {
-        this.statusBarEl = this.addStatusBarItem();
-      }
-      this.statusBarEl.setText(this.settings.greeting);
-    } else if (this.statusBarEl) {
-      this.statusBarEl.remove();
-      this.statusBarEl = null;
-    }
+    this.statusBar.refresh();
   }
 
   restartTick(): void {
-    this.stopTick();
-    this.startTick();
+    this.tick.restart();
   }
 
-  private startTick(): void {
-    const minutes = Math.max(1, this.settings.tickIntervalMinutes);
-    this.tickHandle = window.setInterval(
-      () => {
-        console.debug('[obsidian-vite-sample-plugin] tick');
-      },
-      minutes * 60 * 1000,
-    );
-    this.registerInterval(this.tickHandle);
-  }
-
-  private stopTick(): void {
-    if (this.tickHandle !== null) {
-      window.clearInterval(this.tickHandle);
-      this.tickHandle = null;
-    }
-  }
-
-  private refreshOpenViews(): void {
+  refreshOpenViews(): void {
     for (const leaf of this.app.workspace.getLeavesOfType(VITE_SAMPLE_VIEW_TYPE)) {
       const view = leaf.view;
       if (view instanceof ViteSampleView) {
@@ -249,7 +81,7 @@ export default class ViteSamplePlugin extends Plugin {
     }
   }
 
-  private async activateView(): Promise<void> {
+  async activateView(): Promise<void> {
     const { workspace } = this.app;
     const existing = workspace.getLeavesOfType(VITE_SAMPLE_VIEW_TYPE)[0];
     if (existing) {

@@ -13,17 +13,8 @@ import ViteSamplePlugin from '../src/main';
 import { DEFAULT_SETTINGS } from '../src/settings';
 import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from '../src/view';
 
-type PluginInternals = {
-  statusBarEl: HTMLElement | null;
-  tickHandle: number | null;
-};
-
 function makePlugin(): ViteSamplePlugin {
   return new ViteSamplePlugin(new App() as never, { id: 'obsidian-vite-sample-plugin' } as never);
-}
-
-function internals(plugin: ViteSamplePlugin): PluginInternals {
-  return plugin as unknown as PluginInternals;
 }
 
 beforeEach(() => {
@@ -69,25 +60,25 @@ describe('ViteSamplePlugin.refreshStatusBar', () => {
     plugin.refreshStatusBar(); // second call hits the "already-exists" branch
 
     expect(plugin.addStatusBarItem).toHaveBeenCalledTimes(1);
-    expect(internals(plugin).statusBarEl?.textContent).toBe(DEFAULT_SETTINGS.greeting);
+    expect(plugin.statusBar.element?.textContent).toBe(DEFAULT_SETTINGS.greeting);
   });
 
   it('removes the status bar item when toggled off', () => {
     const plugin = makePlugin();
     plugin.settings = { ...DEFAULT_SETTINGS, enableStatusBar: true };
     plugin.refreshStatusBar();
-    expect(internals(plugin).statusBarEl).not.toBeNull();
+    expect(plugin.statusBar.element).not.toBeNull();
 
     plugin.settings.enableStatusBar = false;
     plugin.refreshStatusBar();
-    expect(internals(plugin).statusBarEl).toBeNull();
+    expect(plugin.statusBar.element).toBeNull();
   });
 
   it('is a no-op when toggled off and already absent', () => {
     const plugin = makePlugin();
     plugin.settings = { ...DEFAULT_SETTINGS, enableStatusBar: false };
     plugin.refreshStatusBar();
-    expect(internals(plugin).statusBarEl).toBeNull();
+    expect(plugin.statusBar.element).toBeNull();
   });
 
   it('does nothing on mobile', () => {
@@ -388,11 +379,11 @@ describe('ViteSamplePlugin.restartTick / stopTick', () => {
     const plugin = makePlugin();
     plugin.settings = { ...DEFAULT_SETTINGS };
     plugin.restartTick();
-    const first = internals(plugin).tickHandle;
+    const first = plugin.tick.intervalHandle;
     expect(first).not.toBeNull();
 
     plugin.restartTick();
-    const second = internals(plugin).tickHandle;
+    const second = plugin.tick.intervalHandle;
     expect(second).not.toBeNull();
     expect(second).not.toBe(first);
 
@@ -401,7 +392,7 @@ describe('ViteSamplePlugin.restartTick / stopTick', () => {
 
   it('onunload handles an already-stopped tick (tickHandle === null)', () => {
     const plugin = makePlugin();
-    expect(internals(plugin).tickHandle).toBeNull();
+    expect(plugin.tick.intervalHandle).toBeNull();
     expect(() => plugin.onunload()).not.toThrow();
   });
 });

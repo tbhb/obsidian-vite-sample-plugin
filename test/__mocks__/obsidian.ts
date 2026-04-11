@@ -248,22 +248,190 @@ class SliderComponent {
 }
 
 class ButtonComponent {
-  private _onClick?: () => void;
+  private _onClick?: () => void | Promise<void>;
   setButtonText(_t: string): this {
     return this;
   }
-  onClick(cb: () => void): this {
+  setWarning(): this {
+    return this;
+  }
+  setCta(): this {
+    return this;
+  }
+  setTooltip(_t: string): this {
+    return this;
+  }
+  setIcon(_i: string): this {
+    return this;
+  }
+  onClick(cb: () => void | Promise<void>): this {
     this._onClick = cb;
     return this;
   }
-  __trigger(): void {
-    this._onClick?.();
+  async __trigger(): Promise<void> {
+    await this._onClick?.();
   }
 }
 
-type AnyComponent = TextComponent | ToggleComponent | SliderComponent | ButtonComponent;
+class ExtraButtonComponent {
+  private _onClick?: () => void | Promise<void>;
+  setIcon(_i: string): this {
+    return this;
+  }
+  setTooltip(_t: string): this {
+    return this;
+  }
+  setDisabled(_d: boolean): this {
+    return this;
+  }
+  onClick(cb: () => void | Promise<void>): this {
+    this._onClick = cb;
+    return this;
+  }
+  async __trigger(): Promise<void> {
+    await this._onClick?.();
+  }
+}
+
+class TextAreaComponent {
+  value = '';
+  private _onChange?: (v: string) => void | Promise<void>;
+  setPlaceholder(_p: string): this {
+    return this;
+  }
+  setValue(v: string): this {
+    this.value = v;
+    return this;
+  }
+  onChange(cb: (v: string) => void | Promise<void>): this {
+    this._onChange = cb;
+    return this;
+  }
+  async __trigger(v: string): Promise<void> {
+    this.value = v;
+    await this._onChange?.(v);
+  }
+}
+
+class SearchComponent {
+  value = '';
+  private _onChange?: (v: string) => void | Promise<void>;
+  setPlaceholder(_p: string): this {
+    return this;
+  }
+  setValue(v: string): this {
+    this.value = v;
+    return this;
+  }
+  onChange(cb: (v: string) => void | Promise<void>): this {
+    this._onChange = cb;
+    return this;
+  }
+  async __trigger(v: string): Promise<void> {
+    this.value = v;
+    await this._onChange?.(v);
+  }
+}
+
+class DropdownComponent {
+  value = '';
+  options: Record<string, string> = {};
+  private _onChange?: (v: string) => void | Promise<void>;
+  addOption(key: string, label: string): this {
+    this.options[key] = label;
+    return this;
+  }
+  addOptions(opts: Record<string, string>): this {
+    Object.assign(this.options, opts);
+    return this;
+  }
+  setValue(v: string): this {
+    this.value = v;
+    return this;
+  }
+  onChange(cb: (v: string) => void | Promise<void>): this {
+    this._onChange = cb;
+    return this;
+  }
+  async __trigger(v: string): Promise<void> {
+    this.value = v;
+    await this._onChange?.(v);
+  }
+}
+
+class ColorComponent {
+  value = '';
+  private _onChange?: (v: string) => void | Promise<void>;
+  setValue(v: string): this {
+    this.value = v;
+    return this;
+  }
+  setValueRgb(_rgb: { r: number; g: number; b: number }): this {
+    return this;
+  }
+  onChange(cb: (v: string) => void | Promise<void>): this {
+    this._onChange = cb;
+    return this;
+  }
+  async __trigger(v: string): Promise<void> {
+    this.value = v;
+    await this._onChange?.(v);
+  }
+}
+
+class MomentFormatComponent {
+  value = '';
+  sampleEl: HTMLElement | null = null;
+  private _onChange?: (v: string) => void | Promise<void>;
+  setPlaceholder(_p: string): this {
+    return this;
+  }
+  setDefaultFormat(_f: string): this {
+    return this;
+  }
+  setSampleEl(el: HTMLElement): this {
+    this.sampleEl = el;
+    return this;
+  }
+  setValue(v: string): this {
+    this.value = v;
+    return this;
+  }
+  onChange(cb: (v: string) => void | Promise<void>): this {
+    this._onChange = cb;
+    return this;
+  }
+  async __trigger(v: string): Promise<void> {
+    this.value = v;
+    await this._onChange?.(v);
+  }
+}
+
+class ProgressBarComponent {
+  value = 0;
+  setValue(v: number): this {
+    this.value = v;
+    return this;
+  }
+}
+
+type AnyComponent =
+  | TextComponent
+  | TextAreaComponent
+  | SearchComponent
+  | DropdownComponent
+  | ToggleComponent
+  | SliderComponent
+  | ButtonComponent
+  | ExtraButtonComponent
+  | ColorComponent
+  | MomentFormatComponent
+  | ProgressBarComponent;
 
 export class Setting {
+  name = '';
+  desc = '';
+  heading = false;
   settingEl: HTMLElement;
   components: AnyComponent[] = [];
 
@@ -273,17 +441,47 @@ export class Setting {
     registries.settings.push(this);
   }
 
-  setName(_name: string): this {
+  setName(name: string): this {
+    this.name = name;
     return this;
   }
-  setDesc(_desc: string): this {
+  setDesc(desc: string): this {
+    this.desc = desc;
     return this;
   }
   setHeading(): this {
+    this.heading = true;
+    return this;
+  }
+  setTooltip(_tooltip: string): this {
+    return this;
+  }
+  setClass(_cls: string): this {
+    return this;
+  }
+  setDisabled(_disabled: boolean): this {
     return this;
   }
   addText(cb: (text: TextComponent) => void): this {
     const c = new TextComponent();
+    this.components.push(c);
+    cb(c);
+    return this;
+  }
+  addTextArea(cb: (area: TextAreaComponent) => void): this {
+    const c = new TextAreaComponent();
+    this.components.push(c);
+    cb(c);
+    return this;
+  }
+  addSearch(cb: (search: SearchComponent) => void): this {
+    const c = new SearchComponent();
+    this.components.push(c);
+    cb(c);
+    return this;
+  }
+  addDropdown(cb: (dropdown: DropdownComponent) => void): this {
+    const c = new DropdownComponent();
     this.components.push(c);
     cb(c);
     return this;
@@ -302,6 +500,30 @@ export class Setting {
   }
   addButton(cb: (button: ButtonComponent) => void): this {
     const c = new ButtonComponent();
+    this.components.push(c);
+    cb(c);
+    return this;
+  }
+  addExtraButton(cb: (button: ExtraButtonComponent) => void): this {
+    const c = new ExtraButtonComponent();
+    this.components.push(c);
+    cb(c);
+    return this;
+  }
+  addColorPicker(cb: (picker: ColorComponent) => void): this {
+    const c = new ColorComponent();
+    this.components.push(c);
+    cb(c);
+    return this;
+  }
+  addMomentFormat(cb: (moment: MomentFormatComponent) => void): this {
+    const c = new MomentFormatComponent();
+    this.components.push(c);
+    cb(c);
+    return this;
+  }
+  addProgressBar(cb: (bar: ProgressBarComponent) => void): this {
+    const c = new ProgressBarComponent();
     this.components.push(c);
     cb(c);
     return this;
@@ -444,4 +666,16 @@ export const Platform = {
 };
 
 // Expose the captured component types so tests can narrow safely.
-export { ButtonComponent, SliderComponent, TextComponent, ToggleComponent };
+export {
+  ButtonComponent,
+  ColorComponent,
+  DropdownComponent,
+  ExtraButtonComponent,
+  MomentFormatComponent,
+  ProgressBarComponent,
+  SearchComponent,
+  SliderComponent,
+  TextAreaComponent,
+  TextComponent,
+  ToggleComponent,
+};

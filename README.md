@@ -126,3 +126,11 @@ obsidian-vite-sample-plugin/
 - The `obsidian` npm package ships types only, so tests run against a local stub aliased in `vitest.config.ts`. Extend `test/__mocks__/obsidian.ts` as you reach for more of the API.
 - Vite emits `main.js` into the plugin folder (not `dist/`) so Obsidian loads it directly. Git ignores it. Publish it through GitHub releases.
 - The plugin targets `minAppVersion` 1.7.2 to use `onUserEnable` and `onExternalSettingsChange`.
+
+## Development
+
+Read [`DEVELOPMENT.md`](DEVELOPMENT.md) for the full contributor guide. It covers prerequisites, the inner development loop, the linting and testing gate, commit conventions, and the release pipeline. [`AGENTS.md`](AGENTS.md) has the condensed version aimed at AI coding agents, and Claude Code imports it automatically via [`CLAUDE.md`](CLAUDE.md).
+
+## License
+
+Released under the [MIT License](LICENSE).

@@ -9,12 +9,15 @@ jsdom
 lezer
 nanostaged
 obsidianmd
+parentheticals
 pipefail
 pnpm
 rolldown
 reviewdog
 rumdl
+shellcheck
 sigstore
+SLSA
 tailwindcss
 tbhb
 tfthacker

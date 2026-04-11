@@ -1,4 +1,13 @@
-import { type Editor, MarkdownView, Notice, Platform, Plugin, type WorkspaceLeaf } from 'obsidian';
+import {
+  type Editor,
+  MarkdownView,
+  type Menu,
+  Notice,
+  Platform,
+  Plugin,
+  TFile,
+  type WorkspaceLeaf,
+} from 'obsidian';
 import { ViteSampleModal } from './modal';
 import {
   DEFAULT_SETTINGS,
@@ -107,6 +116,51 @@ export default class ViteSamplePlugin extends Plugin {
         void this.activateView();
       },
     });
+
+    this.registerEvent(
+      this.app.workspace.on('file-menu', (menu: Menu, file) => {
+        if (!(file instanceof TFile)) {
+          return;
+        }
+        menu.addSeparator();
+        menu.addItem((item) => {
+          item
+            .setTitle('Print file path')
+            .setIcon('document')
+            .onClick(() => {
+              new Notice(file.path);
+            });
+        });
+      }),
+    );
+
+    this.registerEvent(
+      this.app.workspace.on('editor-menu', (menu: Menu, editor, view) => {
+        if (!(view instanceof MarkdownView)) {
+          return;
+        }
+        menu.addSeparator();
+        menu.addItem((item) => {
+          item
+            .setTitle('Insert greeting')
+            .setIcon('message-square')
+            .onClick(() => {
+              editor.replaceSelection(this.settings.greeting);
+            });
+        });
+        const selection = editor.getSelection();
+        if (selection) {
+          menu.addItem((item) => {
+            item
+              .setTitle('Uppercase selection')
+              .setIcon('case-sensitive')
+              .onClick(() => {
+                editor.replaceSelection(selection.toUpperCase());
+              });
+          });
+        }
+      }),
+    );
 
     this.addSettingTab(new ViteSampleSettingTab(this.app, this));
 

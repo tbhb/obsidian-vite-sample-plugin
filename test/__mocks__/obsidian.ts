@@ -131,6 +131,11 @@ export class Plugin extends Component {
   }
 }
 
+interface CapturedWorkspaceEvent {
+  event: string;
+  cb: (...args: any[]) => any;
+}
+
 export class App {
   workspace: {
     getLeavesOfType: (type: string) => WorkspaceLeaf[];
@@ -138,18 +143,27 @@ export class App {
     revealLeaf: (leaf: WorkspaceLeaf) => unknown;
     detachLeavesOfType: (type: string) => void;
     getActiveViewOfType: (type: unknown) => unknown;
+    on: (event: string, cb: (...args: any[]) => any) => CapturedWorkspaceEvent;
+    __eventHandlers: CapturedWorkspaceEvent[];
   };
   vault: Record<string, unknown>;
   metadataCache: Record<string, unknown>;
   fileManager: Record<string, unknown>;
 
   constructor() {
+    const eventHandlers: CapturedWorkspaceEvent[] = [];
     this.workspace = {
       getLeavesOfType: vi.fn((_type: string) => [] as WorkspaceLeaf[]),
       getRightLeaf: vi.fn((_split: boolean) => null),
       revealLeaf: vi.fn(),
       detachLeavesOfType: vi.fn((_type: string) => undefined),
       getActiveViewOfType: vi.fn(() => null),
+      on: vi.fn((event: string, cb: (...args: any[]) => any) => {
+        const ref: CapturedWorkspaceEvent = { event, cb };
+        eventHandlers.push(ref);
+        return ref;
+      }),
+      __eventHandlers: eventHandlers,
     };
     this.vault = {
       getFileByPath: vi.fn(() => null),
@@ -349,9 +363,63 @@ export class ItemView extends Component {
   async onClose(): Promise<void> {}
 }
 
-export class MarkdownView {}
-export class TFile {}
-export class TFolder {}
+export class MarkdownView {
+  file: TFile | null = null;
+}
+
+export class TAbstractFile {
+  path = '';
+  name = '';
+}
+export class TFile extends TAbstractFile {
+  basename = '';
+  extension = '';
+}
+export class TFolder extends TAbstractFile {
+  children: TAbstractFile[] = [];
+}
+
+export class MenuItem {
+  title = '';
+  icon = '';
+  private _onClick?: (evt?: unknown) => unknown;
+  setTitle(title: string): this {
+    this.title = title;
+    return this;
+  }
+  setIcon(icon: string): this {
+    this.icon = icon;
+    return this;
+  }
+  onClick(cb: (evt?: unknown) => unknown): this {
+    this._onClick = cb;
+    return this;
+  }
+  __trigger(evt?: unknown): unknown {
+    return this._onClick?.(evt);
+  }
+}
+
+type MenuEntry = MenuItem | { separator: true };
+
+export class Menu {
+  items: MenuEntry[] = [];
+  showAtMouseEvent = vi.fn();
+  showAtPosition = vi.fn();
+  addItem(cb: (item: MenuItem) => unknown): this {
+    const item = new MenuItem();
+    cb(item);
+    this.items.push(item);
+    return this;
+  }
+  addSeparator(): this {
+    this.items.push({ separator: true });
+    return this;
+  }
+  __getMenuItems(): MenuItem[] {
+    return this.items.filter((entry): entry is MenuItem => entry instanceof MenuItem);
+  }
+}
 
 export interface Editor {
   replaceSelection(text: string): void;

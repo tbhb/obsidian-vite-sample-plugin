@@ -1,4 +1,13 @@
-import { __resetObsidianMocks, App, MarkdownView, Platform, WorkspaceLeaf } from 'obsidian';
+import {
+  __resetObsidianMocks,
+  App,
+  MarkdownView,
+  Menu,
+  Platform,
+  TFile,
+  TFolder,
+  WorkspaceLeaf,
+} from 'obsidian';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ViteSamplePlugin from '../src/main';
 import { DEFAULT_SETTINGS } from '../src/settings';
@@ -268,6 +277,78 @@ describe('ViteSamplePlugin registered callbacks', () => {
     });
     plugin.__domEvents[0]?.callback(new Event('visibilitychange'));
     expect(renderSpy).toHaveBeenCalled();
+  });
+
+  function getWorkspaceHandler(event: string): (...args: unknown[]) => unknown {
+    const handlers = plugin.app.workspace.__eventHandlers;
+    const ref = handlers.find((h) => h.event === event);
+    if (!ref) {
+      throw new Error(`no handler registered for ${event}`);
+    }
+    return ref.cb;
+  }
+
+  it('file-menu handler ignores non-file entries like folders', () => {
+    const handler = getWorkspaceHandler('file-menu');
+    const menu = new Menu();
+    handler(menu, new TFolder(), 'source');
+    expect(menu.items).toHaveLength(0);
+  });
+
+  it('file-menu handler adds a separator and a print-path item for TFile', () => {
+    const handler = getWorkspaceHandler('file-menu');
+    const menu = new Menu();
+    const file = new TFile();
+    file.path = 'notes/hello.md';
+
+    handler(menu, file, 'source');
+
+    expect(menu.items).toHaveLength(2);
+    const [item] = menu.__getMenuItems();
+    expect(item?.title).toBe('Print file path');
+    expect(item?.icon).toBe('document');
+    expect(() => item?.__trigger()).not.toThrow();
+  });
+
+  it('editor-menu handler ignores non-MarkdownView views', () => {
+    const handler = getWorkspaceHandler('editor-menu');
+    const menu = new Menu();
+    const editor = { getSelection: vi.fn(() => ''), replaceSelection: vi.fn() };
+    handler(menu, editor, {});
+    expect(menu.items).toHaveLength(0);
+    expect(editor.getSelection).not.toHaveBeenCalled();
+  });
+
+  it('editor-menu handler adds only the insert item when there is no selection', () => {
+    const handler = getWorkspaceHandler('editor-menu');
+    const menu = new Menu();
+    const editor = { getSelection: vi.fn(() => ''), replaceSelection: vi.fn() };
+
+    handler(menu, editor, new MarkdownView());
+
+    const items = menu.__getMenuItems();
+    expect(items).toHaveLength(1);
+    expect(items[0]?.title).toBe('Insert greeting');
+    items[0]?.__trigger();
+    expect(editor.replaceSelection).toHaveBeenCalledWith(DEFAULT_SETTINGS.greeting);
+  });
+
+  it('editor-menu handler adds both items when there is a selection', () => {
+    const handler = getWorkspaceHandler('editor-menu');
+    const menu = new Menu();
+    const editor = { getSelection: vi.fn(() => 'hello'), replaceSelection: vi.fn() };
+
+    handler(menu, editor, new MarkdownView());
+
+    const items = menu.__getMenuItems();
+    expect(items).toHaveLength(2);
+    expect(items[1]?.title).toBe('Uppercase selection');
+
+    items[0]?.__trigger();
+    expect(editor.replaceSelection).toHaveBeenLastCalledWith(DEFAULT_SETTINGS.greeting);
+
+    items[1]?.__trigger();
+    expect(editor.replaceSelection).toHaveBeenLastCalledWith('HELLO');
   });
 
   it('visibilitychange listener does nothing when hidden', () => {

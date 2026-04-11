@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.1.0...0.1.1) (2026-04-11)
+
+
+### Bug Fixes
+
+* **ci:** exclude CHANGELOG.md from rumdl and vale, opt into Node 24 runtime ([ea5cc25](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/ea5cc250134589f2cda25852f1d2320387aff832))
+
 ## 0.1.0 (2026-04-11)
 
 

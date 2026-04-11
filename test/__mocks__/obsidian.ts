@@ -136,6 +136,7 @@ export class App {
     getLeavesOfType: (type: string) => WorkspaceLeaf[];
     getRightLeaf: (split: boolean) => WorkspaceLeaf | null;
     revealLeaf: (leaf: WorkspaceLeaf) => unknown;
+    detachLeavesOfType: (type: string) => void;
     getActiveViewOfType: (type: unknown) => unknown;
   };
   vault: Record<string, unknown>;
@@ -147,6 +148,7 @@ export class App {
       getLeavesOfType: vi.fn((_type: string) => [] as WorkspaceLeaf[]),
       getRightLeaf: vi.fn((_split: boolean) => null),
       revealLeaf: vi.fn(),
+      detachLeavesOfType: vi.fn((_type: string) => undefined),
       getActiveViewOfType: vi.fn(() => null),
     };
     this.vault = {
@@ -292,15 +294,26 @@ export class Setting {
   }
 }
 
+export class Scope {
+  __bindings: { modifiers: string[]; key: string; fn: (...args: unknown[]) => unknown }[] = [];
+  register = vi.fn((modifiers: string[], key: string, fn: (...args: unknown[]) => unknown) => {
+    const binding = { modifiers, key, fn };
+    this.__bindings.push(binding);
+    return binding;
+  });
+}
+
 export class Modal {
   app: App;
   contentEl: HTMLElement;
   titleEl: HTMLElement;
+  scope: Scope;
 
   constructor(app: App) {
     this.app = app;
     this.contentEl = document.createElement('div');
     this.titleEl = document.createElement('div');
+    this.scope = new Scope();
   }
   open = vi.fn();
   close = vi.fn();
@@ -342,6 +355,7 @@ export class TFolder {}
 
 export interface Editor {
   replaceSelection(text: string): void;
+  getSelection(): string;
   getValue(): string;
   setValue(text: string): void;
 }

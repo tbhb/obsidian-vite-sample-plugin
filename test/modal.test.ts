@@ -32,4 +32,12 @@ describe('ViteSampleModal', () => {
     expect(queryByText(modal.contentEl, 'hello world')).toBeNull();
     expect(modal.contentEl).toBeEmptyDOMElement();
   });
+
+  it('registers a Mod+Enter scope binding that closes the modal', () => {
+    expect(modal.scope.register).toHaveBeenCalledWith(['Mod'], 'Enter', expect.any(Function));
+    const binding = modal.scope.__bindings[0];
+    expect(binding).toBeDefined();
+    binding?.fn();
+    expect(modal.close).toHaveBeenCalled();
+  });
 });

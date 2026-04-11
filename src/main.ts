@@ -60,6 +60,47 @@ export default class ViteSamplePlugin extends Plugin {
     });
 
     this.addCommand({
+      id: 'uppercase-selection',
+      name: 'Uppercase current selection',
+      editorCallback: (editor: Editor) => {
+        editor.replaceSelection(editor.getSelection().toUpperCase());
+      },
+    });
+
+    this.addCommand({
+      id: 'wrap-selection-in-greeting',
+      name: 'Wrap selection in greeting',
+      editorCheckCallback: (checking, editor: Editor, view) => {
+        if (!(view instanceof MarkdownView)) {
+          return false;
+        }
+        const selection = editor.getSelection();
+        if (!selection) {
+          return false;
+        }
+        if (!checking) {
+          editor.replaceSelection(`${this.settings.greeting}: ${selection}`);
+        }
+        return true;
+      },
+    });
+
+    this.addCommand({
+      id: 'close-sample-view',
+      name: 'Close sample view',
+      checkCallback: (checking) => {
+        const leaves = this.app.workspace.getLeavesOfType(VITE_SAMPLE_VIEW_TYPE);
+        if (leaves.length === 0) {
+          return false;
+        }
+        if (!checking) {
+          this.app.workspace.detachLeavesOfType(VITE_SAMPLE_VIEW_TYPE);
+        }
+        return true;
+      },
+    });
+
+    this.addCommand({
       id: 'open-sample-view',
       name: 'Open sample view',
       callback: () => {

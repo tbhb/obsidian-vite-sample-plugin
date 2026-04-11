@@ -106,6 +106,9 @@ describe('ViteSamplePlugin.onload', () => {
       'show-greeting-notice',
       'open-sample-modal',
       'insert-greeting',
+      'uppercase-selection',
+      'wrap-selection-in-greeting',
+      'close-sample-view',
       'open-sample-view',
     ]);
     expect(plugin.__settingTabs).toHaveLength(1);
@@ -190,6 +193,61 @@ describe('ViteSamplePlugin registered callbacks', () => {
     // MarkdownView, checking=false → true, replace executed
     expect(cmd?.editorCheckCallback?.(false, editor, markdownView)).toBe(true);
     expect(editor.replaceSelection).toHaveBeenCalledWith(DEFAULT_SETTINGS.greeting);
+  });
+
+  it('uppercase-selection editorCallback replaces selection with uppercase text', () => {
+    const cmd = plugin.__findCommand('uppercase-selection');
+    const editor = {
+      getSelection: vi.fn(() => 'hello world'),
+      replaceSelection: vi.fn(),
+    };
+    cmd?.editorCallback?.(editor, new MarkdownView());
+    expect(editor.replaceSelection).toHaveBeenCalledWith('HELLO WORLD');
+  });
+
+  it('wrap-selection-in-greeting editorCheckCallback covers view, selection, and run branches', () => {
+    const cmd = plugin.__findCommand('wrap-selection-in-greeting');
+    const editor = {
+      getSelection: vi.fn(() => 'world'),
+      replaceSelection: vi.fn(),
+    };
+    const markdownView = new MarkdownView();
+
+    // Not a MarkdownView → false
+    expect(cmd?.editorCheckCallback?.(true, editor, {})).toBe(false);
+
+    // MarkdownView with empty selection → false
+    editor.getSelection.mockReturnValueOnce('');
+    expect(cmd?.editorCheckCallback?.(true, editor, markdownView)).toBe(false);
+
+    // MarkdownView with selection, checking=true → true, no replace
+    expect(cmd?.editorCheckCallback?.(true, editor, markdownView)).toBe(true);
+    expect(editor.replaceSelection).not.toHaveBeenCalled();
+
+    // MarkdownView with selection, checking=false → true, replace executed
+    expect(cmd?.editorCheckCallback?.(false, editor, markdownView)).toBe(true);
+    expect(editor.replaceSelection).toHaveBeenCalledWith(`${DEFAULT_SETTINGS.greeting}: world`);
+  });
+
+  it('close-sample-view checkCallback disables when no leaves and detaches when present', () => {
+    const cmd = plugin.__findCommand('close-sample-view');
+    const getLeavesSpy = vi.spyOn(plugin.app.workspace, 'getLeavesOfType');
+    const detachSpy = vi.spyOn(plugin.app.workspace, 'detachLeavesOfType');
+
+    // No leaves → false
+    getLeavesSpy.mockReturnValueOnce([]);
+    expect(cmd?.checkCallback?.(true)).toBe(false);
+    expect(detachSpy).not.toHaveBeenCalled();
+
+    // Leaves present, checking=true → true, detach not called
+    getLeavesSpy.mockReturnValueOnce([new WorkspaceLeaf()]);
+    expect(cmd?.checkCallback?.(true)).toBe(true);
+    expect(detachSpy).not.toHaveBeenCalled();
+
+    // Leaves present, checking=false → true, detach called
+    getLeavesSpy.mockReturnValueOnce([new WorkspaceLeaf()]);
+    expect(cmd?.checkCallback?.(false)).toBe(true);
+    expect(detachSpy).toHaveBeenCalledWith(VITE_SAMPLE_VIEW_TYPE);
   });
 
   it('protocol handler runs without throwing', () => {

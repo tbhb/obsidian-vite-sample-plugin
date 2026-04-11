@@ -12,35 +12,35 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-	{
-		files: ['src/**/*.ts'],
-		languageOptions: {
-			globals: {
-				...globals.browser,
-			},
-			parserOptions: {
-				projectService: {
-					allowDefaultProject: ['eslint.config.mts', 'manifest.json'],
-				},
-				tsconfigRootDir: import.meta.dirname,
-				extraFileExtensions: ['.json'],
-			},
-		},
-	},
-	...obsidianmd.configs.recommended,
-	globalIgnores([
-		'node_modules',
-		'dist',
-		'coverage',
-		'main.js',
-		'main.js.map',
-		'styles.css',
-		'vite.config.ts',
-		'vitest.config.ts',
-		'commitlint.config.js',
-		'version-bump.mjs',
-		'versions.json',
-		'test',
-		'.husky',
-	]),
+  {
+    files: ['src/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ['eslint.config.mts', 'manifest.json'],
+        },
+        tsconfigRootDir: import.meta.dirname,
+        extraFileExtensions: ['.json'],
+      },
+    },
+  },
+  ...obsidianmd.configs.recommended,
+  globalIgnores([
+    'node_modules',
+    'dist',
+    'coverage',
+    'main.js',
+    'main.js.map',
+    'styles.css',
+    'vite.config.ts',
+    'vitest.config.ts',
+    'commitlint.config.js',
+    'version-bump.mjs',
+    'versions.json',
+    'test',
+    '.husky',
+  ]),
 );

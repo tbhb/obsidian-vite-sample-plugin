@@ -21,7 +21,7 @@
     "lint:all": "pnpm run lint && pnpm run lint:markdown && pnpm run lint:yaml && pnpm run lint:spelling && pnpm run lint:actions && pnpm run lint:prose",
     "lint:markdown": "rumdl check .",
     "lint:markdown:fix": "rumdl check --fix .",
-    "lint:prose": "vale --glob='!{.vale,node_modules,coverage,dist}/**' .",
+    "lint:prose": "vale --glob='!{.vale/**,node_modules/**,coverage/**,dist/**,CHANGELOG.md}' .",
     "lint:spelling": "cspell --no-progress --no-summary --gitignore .",
     "lint:staged": "nano-staged",
     "lint:yaml": "yamllint --strict .",

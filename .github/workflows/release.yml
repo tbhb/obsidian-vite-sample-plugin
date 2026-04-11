@@ -15,6 +15,12 @@ concurrency:
   group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
+env:
+  # Opt JS-based actions into the Node 24 runtime early (the default flip
+  # happens 2026-06-02). Silences deprecation warnings on older actions
+  # like googleapis/release-please-action@v4.4.0 which still target Node 20.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   release-please:
     name: release-please (${{ github.ref_name }})

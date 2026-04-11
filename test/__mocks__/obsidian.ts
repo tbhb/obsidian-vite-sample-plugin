@@ -37,6 +37,13 @@ interface CapturedDomEvent {
   callback: (evt: Event) => unknown;
 }
 
+interface CapturedBasesView {
+  name: string;
+  icon: string;
+  factory: (controller: QueryController, containerEl: HTMLElement) => unknown;
+  options?: (config?: BasesViewConfig) => BasesAllOptions[];
+}
+
 const registries = {
   settings: [] as Setting[],
 };
@@ -76,6 +83,7 @@ export class Plugin extends Component {
   __statusBarItems: HTMLElement[] = [];
   __settingTabs: PluginSettingTab[] = [];
   __intervals: number[] = [];
+  __basesViews = new Map<string, CapturedBasesView>();
 
   constructor(app: App, manifest: Record<string, unknown> = {}) {
     super();
@@ -108,6 +116,11 @@ export class Plugin extends Component {
 
   registerView = vi.fn((type: string, factory: (leaf: WorkspaceLeaf) => unknown) => {
     this.__viewFactories.set(type, factory);
+  });
+
+  registerBasesView = vi.fn((id: string, registration: CapturedBasesView) => {
+    this.__basesViews.set(id, registration);
+    return true;
   });
 
   registerObsidianProtocolHandler = vi.fn(
@@ -144,6 +157,8 @@ export class App {
     detachLeavesOfType: (type: string) => void;
     getActiveViewOfType: (type: unknown) => unknown;
     on: (event: string, cb: (...args: any[]) => any) => CapturedWorkspaceEvent;
+    openLinkText: (linktext: string, sourcePath: string, newLeaf?: unknown) => Promise<void>;
+    trigger: (name: string, ...args: any[]) => void;
     __eventHandlers: CapturedWorkspaceEvent[];
   };
   vault: Record<string, unknown>;
@@ -163,6 +178,10 @@ export class App {
         eventHandlers.push(ref);
         return ref;
       }),
+      openLinkText: vi.fn(async (_linktext: string, _sourcePath: string, _newLeaf?: unknown) => {
+        // no-op stub — tests assert against the spy directly
+      }),
+      trigger: vi.fn((_name: string, ..._args: any[]) => undefined),
       __eventHandlers: eventHandlers,
     };
     this.vault = {
@@ -653,6 +672,62 @@ export interface Editor {
 export class WorkspaceLeaf {
   view: unknown = null;
   setViewState = vi.fn(async (_state: unknown) => undefined);
+}
+
+export class QueryController extends Component {}
+
+// Type-shape stubs so src code importing these symbols still compiles under
+// `tsconfig.test.json`, which aliases `obsidian` to this file.
+export type BasesAllOptions = {
+  type: string;
+  key: string;
+  displayName: string;
+  default?: unknown;
+  options?: Record<string, string>;
+};
+
+export interface BasesViewConfig {
+  get(key: string): unknown;
+  set(key: string, value: unknown): void;
+  getOrder(): string[];
+  getDisplayName(propertyId: string): string;
+}
+
+export interface HoverParent {
+  hoverPopover: HoverPopover | null;
+}
+
+export class HoverPopover {}
+
+// Mirror the real Obsidian API surface — Keymap is exported as a class with
+// static helpers, so this stub has to be a class too.
+// biome-ignore lint/complexity/noStaticOnlyClass: mirrors upstream API
+export class Keymap {
+  static isModEvent = vi.fn((_evt?: unknown) => false as unknown as boolean);
+}
+
+export function parsePropertyId(propertyId: string): { type: string; name: string } {
+  const idx = propertyId.indexOf('.');
+  if (idx < 0) {
+    return { type: '', name: propertyId };
+  }
+  return { type: propertyId.slice(0, idx), name: propertyId.slice(idx + 1) };
+}
+
+// Real BasesView is abstract and constructed by Obsidian's runtime. The mock
+// just records the controller and exposes config/data/app slots that tests
+// populate before driving onDataUpdated.
+export class BasesView extends Component {
+  app: App | null = null;
+  config: any = null;
+  data: any = null;
+  allProperties: string[] = [];
+  controller: unknown;
+
+  constructor(controller: unknown) {
+    super();
+    this.controller = controller;
+  }
 }
 
 export const Platform = {

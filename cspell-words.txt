@@ -6,7 +6,9 @@ dependabot
 gitignored
 husky
 jsdom
+Keymap
 lezer
+linktext
 nanostaged
 obsidianmd
 parentheticals

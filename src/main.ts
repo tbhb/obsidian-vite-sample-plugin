@@ -1,4 +1,5 @@
 import { Plugin, type WorkspaceLeaf } from 'obsidian';
+import { registerBasesViewExamples } from './examples/bases-views';
 import { registerCommandExamples } from './examples/commands';
 import { registerContextMenuExamples } from './examples/context-menus';
 import { registerDomEventExamples } from './examples/dom-events';
@@ -33,6 +34,7 @@ export default class ViteSamplePlugin extends Plugin {
     this.addSettingTab(new ViteSampleSettingTab(this.app, this));
     registerProtocolHandlerExample(this);
     registerDomEventExamples(this);
+    registerBasesViewExamples(this);
 
     this.tick.start();
   }

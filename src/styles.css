@@ -61,4 +61,97 @@
 		flex-direction: column;
 		gap: var(--size-4-2);
 	}
+
+	.vite-sample-bases-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-4-3);
+		padding: var(--size-4-3);
+	}
+
+	.vite-sample-bases-list__group-heading {
+		margin: 0 0 var(--size-4-1) 0;
+		color: var(--text-muted);
+		font-size: var(--font-ui-small);
+		text-transform: uppercase;
+	}
+
+	.vite-sample-bases-list__items {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.vite-sample-bases-list__item {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: var(--size-2-2);
+		padding: var(--size-2-1) 0;
+		border-bottom: 1px solid var(--background-modifier-border);
+	}
+
+	.vite-sample-bases-list__separator {
+		color: var(--text-faint);
+	}
+
+	.vite-sample-bases-list__value {
+		color: var(--text-muted);
+	}
+
+	.vite-sample-bases-list__link {
+		color: var(--text-accent);
+		text-decoration: none;
+	}
+
+	.vite-sample-bases-cards {
+		padding: var(--size-4-3);
+	}
+
+	.vite-sample-bases-cards__grid {
+		display: grid;
+		gap: var(--size-4-3);
+		grid-template-columns: repeat(auto-fill, minmax(var(--vite-sample-card-min-width, 220px), 1fr));
+	}
+
+	.vite-sample-bases-cards[data-card-size="small"] {
+		--vite-sample-card-min-width: 160px;
+	}
+
+	.vite-sample-bases-cards[data-card-size="medium"] {
+		--vite-sample-card-min-width: 220px;
+	}
+
+	.vite-sample-bases-cards[data-card-size="large"] {
+		--vite-sample-card-min-width: 300px;
+	}
+
+	.vite-sample-bases-card {
+		background: var(--background-secondary);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: var(--radius-m);
+		padding: var(--size-4-3);
+	}
+
+	.vite-sample-bases-card__title {
+		margin: 0 0 var(--size-4-2) 0;
+		color: var(--text-accent);
+	}
+
+	.vite-sample-bases-card__properties {
+		display: grid;
+		grid-template-columns: max-content 1fr;
+		gap: var(--size-2-1) var(--size-4-2);
+		margin: 0;
+	}
+
+	.vite-sample-bases-card__label {
+		color: var(--text-muted);
+		font-size: var(--font-ui-small);
+	}
+
+	.vite-sample-bases-card__value {
+		margin: 0;
+		color: var(--text-normal);
+	}
 }

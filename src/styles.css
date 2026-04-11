@@ -1,0 +1,64 @@
+/*
+ * Stylesheet entry for vite-sample-plugin.
+ *
+ * Vite + @tailwindcss/vite compile this file and emit it to the plugin root
+ * as `styles.css`, which Obsidian loads at runtime.
+ *
+ * Two conscious choices vs. a vanilla Tailwind setup:
+ *
+ * 1. Preflight is disabled. Tailwind's CSS reset conflicts with Obsidian's
+ *    theme system (headings, buttons, links, etc.). Instead of
+ *    `@import "tailwindcss"`, we import the theme + utilities layers
+ *    individually and skip `preflight.css`.
+ *
+ * 2. Utilities are prefixed with `tw:` (e.g. `tw:mt-4`, `tw:font-semibold`)
+ *    so they can't collide with core CSS, other plugins, or the user's
+ *    custom snippets. Usage: `createEl('p', { cls: 'tw:font-semibold' })`.
+ *
+ * Hand-written BEM classes also live in this file, below the Tailwind
+ * imports. Obsidian's plugin guidelines require CSS-class-based styling
+ * (no inline styles) and the use of Obsidian's CSS variables for theme
+ * compatibility — the `@theme inline` block below maps those into the
+ * Tailwind color palette so `tw:text-text-muted`, `tw:bg-background-primary`
+ * etc. resolve against the current Obsidian theme at runtime.
+ */
+
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme) prefix(tw);
+@import 'tailwindcss/utilities.css' layer(utilities) prefix(tw);
+
+@theme inline {
+	--color-text-normal: var(--text-normal);
+	--color-text-muted: var(--text-muted);
+	--color-text-accent: var(--text-accent);
+	--color-text-faint: var(--text-faint);
+	--color-background-primary: var(--background-primary);
+	--color-background-secondary: var(--background-secondary);
+	--color-interactive-accent: var(--interactive-accent);
+	--color-interactive-normal: var(--interactive-normal);
+}
+
+@layer components {
+	.vite-sample-view {
+		padding: var(--size-4-4);
+		color: var(--text-normal);
+	}
+
+	.vite-sample-view__title {
+		margin-top: 0;
+		color: var(--text-accent);
+	}
+
+	.vite-sample-view__list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-4-2);
+	}
+
+	.vite-sample-modal__body {
+		display: flex;
+		flex-direction: column;
+		gap: var(--size-4-2);
+	}
+}

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1-beta.2](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.2.1-beta.1...0.2.1-beta.2) (2026-04-23)
+
+
+### Miscellaneous Chores
+
+* validate prerelease config auto-flags GitHub release ([bfc01f1](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/bfc01f13914b17a8913512fbcc9cde2378029d49))
+
 ## [0.2.1-beta.1](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.2.0...0.2.1-beta.1) (2026-04-23)
 
 

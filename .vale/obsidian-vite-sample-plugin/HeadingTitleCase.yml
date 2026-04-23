@@ -106,3 +106,4 @@ exceptions:
   - Twilio
   - Okta
   - Auth0
+  - Testing Library

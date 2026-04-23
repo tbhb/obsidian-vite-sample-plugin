@@ -64,7 +64,7 @@ module.exports = {
     },
     {
       name: 'not-to-deprecated',
-      severity: 'warn',
+      severity: 'error',
       comment: 'A module depends on a deprecated npm package. Upgrade or replace it.',
       from: {},
       to: { dependencyTypes: ['deprecated'] },

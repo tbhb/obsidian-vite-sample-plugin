@@ -26,13 +26,13 @@ pnpm test             # vitest, 100% coverage gate
 pnpm build            # typecheck + vite build
 ```
 
-Run the full gate before pushing:
+The pre-push hook runs the full gate automatically, so a clean push mirrors CI:
 
 ```bash
 pnpm lint:all && pnpm typecheck && pnpm build && pnpm test:coverage
 ```
 
-The pre-commit hook runs `nano-staged`. The pre-push hook runs typecheck, knip, and tests. Never bypass with `--no-verify`.
+The pre-commit hook runs `nano-staged`. Never bypass either hook with `--no-verify`.
 
 ## Repository layout
 
@@ -87,7 +87,7 @@ pnpm vale:sync        # download vale style packages
 ## Code style
 
 - Two-space indentation for everything, enforced by Biome. Single quotes, semicolons, trailing commas, 100-char line width. See `biome.json`.
-- `eslint-plugin-obsidianmd` handles Obsidian submission rules: sentence-case UI strings, no `innerHTML`, no `TFile` casts, no `mod-cta` misuse. ESLint runs only on `src/**/*.ts`.
+- `eslint-plugin-obsidianmd` handles Obsidian submission rules: sentence-case UI strings, no `innerHTML`, no `TFile` casts, no `mod-cta` misuse. The plugin runs on both `src/**/*.ts` and `test/**/*.ts`. The `hardcoded-config-path` rule stays off for tests because it substring-matches `.obsidian` and fires on docs URLs.
 - `typescript-eslint` contributes type-aware rules that Biome doesn't cover: the `no-unsafe-*` cluster, `strict-boolean-expressions`, `ban-ts-comment`, `no-unnecessary-type-assertion`, `no-confusing-void-expression`, `restrict-plus-operands`, `restrict-template-expressions`, and `require-await`. Biome owns `no-floating-promises`, `no-misused-promises`, `use-await-thenable`, `no-explicit-any`, `no-non-null-assertion`, and `no-ts-ignore`, so ESLint doesn't duplicate them.
 - `eslint-plugin-sonarjs` contributes `sonarjs/cognitive-complexity` at the default threshold of 15. Prefer extracting helper functions over raising the threshold.
 - [dependency-cruiser][depcruise] guards the module graph via `.dependency-cruiser.cjs`. It forbids runtime circular dependencies, orphan modules, unresolvable imports, dev-dependency imports from `src/`, duplicate dependency-type declarations, and `src/` depending on `test/`. Cycles composed only of `import type` edges pass, since those edges vanish after tsc emits. The rule exempts `obsidian` from the dev-dep check because the Obsidian host supplies it at runtime. The `not-to-test` rule exempts `test/__mocks__/obsidian.ts` because the tsconfig aliases `obsidian` to it for type-checking. No runtime edge materializes.
@@ -123,7 +123,7 @@ Add new technical terms to `cspell-words.txt`. Avoid em-dashes entirely, use com
 - husky hooks, installed automatically by `pnpm install`:
   - `pre-commit` runs `nano-staged` across the staged files
   - `commit-msg` runs commitlint
-  - `pre-push` runs `pnpm typecheck && pnpm test`
+  - `pre-push` runs the full gate: `lint:all`, `typecheck`, `build`, `test:coverage`, mirroring CI
 - Never use `--no-verify`. Fix the underlying failure.
 - Work on a feature branch, open a PR, and merge via squash.
 

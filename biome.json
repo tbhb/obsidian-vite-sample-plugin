@@ -32,7 +32,7 @@
     "rules": {
       "recommended": true,
       "style": {
-        "useImportType": "warn",
+        "useImportType": "error",
         "noParameterAssign": "error",
         "noNonNullAssertion": "error"
       },
@@ -42,8 +42,8 @@
         "noImportCycles": "error"
       },
       "correctness": {
-        "noUnusedVariables": "warn",
-        "noUnusedFunctionParameters": "off",
+        "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "error",
         "noUnresolvedImports": "error"
       },
       "complexity": {
@@ -53,7 +53,7 @@
         "noFloatingPromises": "error",
         "noMisusedPromises": "error",
         "useAwaitThenable": "error",
-        "noUnnecessaryConditions": "warn"
+        "noUnnecessaryConditions": "error"
       }
     }
   },

@@ -12,6 +12,8 @@ commitlint
 cspell
 createDiv
 createEl
+[Dd]ependabot
+[Dd]evDependenc(?:y|ies)
 ESLint
 eslint-disable
 eslint-disable-next-line

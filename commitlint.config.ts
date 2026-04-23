@@ -3,11 +3,11 @@ import type { UserConfig } from '@commitlint/types';
 const config: UserConfig = {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    // Subject line no longer than 100 chars; body/footer up to 120.
+    // Subject line no longer than 100 chars. Body and footer up to 120.
     'header-max-length': [2, 'always', 100],
     'body-max-line-length': [2, 'always', 120],
     'footer-max-line-length': [2, 'always', 120],
-    // config-conventional sets these at warning; escalate so the pre-push
+    // config-conventional sets these at warning. Escalate so the pre-push
     // and commit-msg hooks actually block malformed commits.
     'body-leading-blank': [2, 'always'],
     'footer-leading-blank': [2, 'always'],

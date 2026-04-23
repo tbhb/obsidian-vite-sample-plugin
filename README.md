@@ -75,7 +75,7 @@ Note: tests attach `view.contentEl` and `modal.contentEl` to `document.body` in 
 [conventional-commits]: https://www.conventionalcommits.org/
 [slsa]: https://slsa.dev/
 
-Stable versus beta comes down to the commit that triggers the release. A normal `feat` or `fix` bump produces a tag like `1.2.0`, unmarked on GitHub. Adding a `Release-As: 1.2.0-beta.1` footer to a qualifying commit cuts a release at that exact version. release-please v5 auto-flags the GitHub release as prerelease because the version carries a prerelease qualifier. [BRAT]'s beta-tester flow honors that flag, so opted-in users get the beta without any branch-level distinction.
+Stable versus beta comes down to the commit that triggers the release. A normal `feat` or `fix` bump produces a tag like `1.2.0`, unmarked on GitHub. Adding a `Release-As: 1.2.0-beta.1` footer to a qualifying commit cuts a release at that exact version. The package config sets `"prerelease": true`, so release-please flags the GitHub release as prerelease whenever the version carries a prerelease qualifier. Stable versions stay unflagged. [BRAT]'s beta-tester flow honors that flag, so opted-in users get the beta without any branch-level distinction.
 
 `versions.json` needs a new entry on every release, not an in-place update. release-please has no built-in way to handle this. A workflow step syncs `versions.json` on the release PR branch so the new entry lands in the same commit as the version bump.
 

@@ -1,8 +1,10 @@
+archi
 autorelease
 autoupdate
 biomejs
 collab
 cooldown
+depcruise
 dependabot
 gitignored
 husky

@@ -13,6 +13,7 @@ formatters
 gitignore[dr]?
 [Hh]usky
 jsdom
+[Kk]nip
 Lezer
 LTS
 MIT

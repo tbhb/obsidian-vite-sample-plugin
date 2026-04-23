@@ -10,6 +10,7 @@ gitignored
 husky
 jsdom
 Keymap
+knip
 lezer
 linktext
 nanostaged

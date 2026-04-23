@@ -1,5 +1,8 @@
 import {
   type BasesAllOptions,
+  type BasesEntry,
+  type BasesEntryGroup,
+  type BasesPropertyId,
   BasesView,
   type BasesViewConfig,
   type HoverParent,
@@ -91,49 +94,62 @@ class ViteSampleListBasesView extends BasesView implements HoverParent {
     this.rootEl.empty();
 
     for (const group of this.data.groupedData) {
-      const groupEl = this.rootEl.createDiv({ cls: 'vite-sample-bases-list__group' });
+      this.renderGroup(group, { separator, showGroupHeadings, order });
+    }
+  }
 
-      if (showGroupHeadings && group.hasKey() && group.key) {
-        groupEl.createEl('h4', {
-          cls: 'vite-sample-bases-list__group-heading',
-          text: group.key.toString(),
-        });
+  private renderGroup(
+    group: BasesEntryGroup,
+    opts: { separator: string; showGroupHeadings: boolean; order: BasesPropertyId[] },
+  ): void {
+    const groupEl = this.rootEl.createDiv({ cls: 'vite-sample-bases-list__group' });
+
+    if (opts.showGroupHeadings && group.hasKey() && group.key) {
+      groupEl.createEl('h4', {
+        cls: 'vite-sample-bases-list__group-heading',
+        text: group.key.toString(),
+      });
+    }
+
+    const listEl = groupEl.createEl('ul', { cls: 'vite-sample-bases-list__items' });
+
+    for (const entry of group.entries) {
+      this.renderEntry(listEl, entry, opts.order, opts.separator);
+    }
+  }
+
+  private renderEntry(
+    listEl: HTMLElement,
+    entry: BasesEntry,
+    order: BasesPropertyId[],
+    separator: string,
+  ): void {
+    const itemEl = listEl.createEl('li', { cls: 'vite-sample-bases-list__item' });
+    let firstProp = true;
+
+    for (const propertyId of order) {
+      const value = entry.getValue(propertyId);
+      const text = value ? value.toString() : '';
+      if (!text) {
+        continue;
       }
 
-      const listEl = groupEl.createEl('ul', { cls: 'vite-sample-bases-list__items' });
+      if (!firstProp) {
+        itemEl.createSpan({
+          cls: 'vite-sample-bases-list__separator',
+          text: separator,
+        });
+      }
+      firstProp = false;
 
-      for (const entry of group.entries) {
-        const itemEl = listEl.createEl('li', { cls: 'vite-sample-bases-list__item' });
-        let firstProp = true;
-
-        for (const propertyId of order) {
-          const value = entry.getValue(propertyId);
-          if (!value) {
-            continue;
-          }
-          const text = value.toString();
-          if (!text) {
-            continue;
-          }
-
-          if (!firstProp) {
-            itemEl.createSpan({
-              cls: 'vite-sample-bases-list__separator',
-              text: separator,
-            });
-          }
-          firstProp = false;
-
-          const { type, name } = parsePropertyId(propertyId);
-          if (type === 'file' && name === 'name') {
-            this.renderFileLink(itemEl, entry.file.path, text);
-          } else {
-            itemEl.createSpan({
-              cls: 'vite-sample-bases-list__value',
-              text,
-            });
-          }
-        }
+      const { type, name } = parsePropertyId(propertyId);
+      if (type === 'file' && name === 'name') {
+        this.renderFileLink(itemEl, entry.file.path, text);
+      } else {
+        itemEl.createSpan({
+          cls: 'vite-sample-bases-list__value',
+          text,
+        });
       }
     }
   }
@@ -187,37 +203,43 @@ class ViteSampleCardsBasesView extends BasesView {
 
     for (const group of this.data.groupedData) {
       const gridEl = this.rootEl.createDiv({ cls: 'vite-sample-bases-cards__grid' });
-
       for (const entry of group.entries) {
-        const cardEl = gridEl.createDiv({ cls: 'vite-sample-bases-card' });
-        cardEl.createEl('h4', {
-          cls: 'vite-sample-bases-card__title',
-          text: entry.file.basename,
-        });
-
-        const dl = cardEl.createEl('dl', { cls: 'vite-sample-bases-card__properties' });
-        for (const propertyId of order) {
-          const value = entry.getValue(propertyId);
-          if (!value) {
-            continue;
-          }
-          const text = value.toString();
-          if (!text) {
-            continue;
-          }
-
-          if (showLabels) {
-            dl.createEl('dt', {
-              cls: 'vite-sample-bases-card__label',
-              text: config.getDisplayName(propertyId),
-            });
-          }
-          dl.createEl('dd', {
-            cls: 'vite-sample-bases-card__value',
-            text,
-          });
-        }
+        this.renderCard(gridEl, entry, config, order, showLabels);
       }
+    }
+  }
+
+  private renderCard(
+    gridEl: HTMLElement,
+    entry: BasesEntry,
+    config: BasesViewConfig,
+    order: BasesPropertyId[],
+    showLabels: boolean,
+  ): void {
+    const cardEl = gridEl.createDiv({ cls: 'vite-sample-bases-card' });
+    cardEl.createEl('h4', {
+      cls: 'vite-sample-bases-card__title',
+      text: entry.file.basename,
+    });
+
+    const dl = cardEl.createEl('dl', { cls: 'vite-sample-bases-card__properties' });
+    for (const propertyId of order) {
+      const value = entry.getValue(propertyId);
+      const text = value ? value.toString() : '';
+      if (!text) {
+        continue;
+      }
+
+      if (showLabels) {
+        dl.createEl('dt', {
+          cls: 'vite-sample-bases-card__label',
+          text: config.getDisplayName(propertyId),
+        });
+      }
+      dl.createEl('dd', {
+        cls: 'vite-sample-bases-card__value',
+        text,
+      });
     }
   }
 }

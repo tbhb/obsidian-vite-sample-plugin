@@ -21,6 +21,7 @@ rumdl
 shellcheck
 sigstore
 SLSA
+sonarjs
 tailwindcss
 tbhb
 tfthacker

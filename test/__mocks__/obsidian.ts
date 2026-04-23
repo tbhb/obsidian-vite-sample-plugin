@@ -689,8 +689,21 @@ export type BasesAllOptions = {
 export interface BasesViewConfig {
   get(key: string): unknown;
   set(key: string, value: unknown): void;
-  getOrder(): string[];
-  getDisplayName(propertyId: string): string;
+  getOrder(): BasesPropertyId[];
+  getDisplayName(propertyId: BasesPropertyId): string;
+}
+
+export type BasesPropertyId = string;
+
+export interface BasesEntry {
+  file: { path: string; basename: string };
+  getValue(propertyId: BasesPropertyId): { toString(): string } | null;
+}
+
+export interface BasesEntryGroup {
+  key?: { toString(): string };
+  hasKey(): boolean;
+  entries: BasesEntry[];
 }
 
 export interface HoverParent {

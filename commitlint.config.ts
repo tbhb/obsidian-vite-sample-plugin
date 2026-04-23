@@ -1,5 +1,6 @@
-/** @type {import("@commitlint/types").UserConfig} */
-export default {
+import type { UserConfig } from '@commitlint/types';
+
+const config: UserConfig = {
   extends: ['@commitlint/config-conventional'],
   rules: {
     // Subject line no longer than 100 chars; body/footer up to 120.
@@ -27,3 +28,5 @@ export default {
     'scope-enum': [2, 'always', ['ci', 'deps', 'deps-dev', 'dev-dependencies', 'main', 'release']],
   },
 };
+
+export default config;

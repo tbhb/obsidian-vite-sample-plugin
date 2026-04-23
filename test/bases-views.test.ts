@@ -7,7 +7,7 @@ import {
 } from '../src/examples/bases-views';
 import ViteSamplePlugin from '../src/main';
 
-// Lightweight shapes that mirror the parts of the Bases API we touch. Kept
+// Lightweight shapes that mirror the touched parts of the Bases API. Kept
 // local so the tests stay decoupled from Obsidian's real type graph.
 interface ValueLike {
   toString(): string;
@@ -42,7 +42,7 @@ function fakeConfig(overrides: Record<string, unknown>, order: string[]) {
 }
 
 function attach<V extends BasesView>(view: V, plugin: ViteSamplePlugin): V {
-  // The real BasesView has `app` populated by Obsidian. Our mock leaves it
+  // The real BasesView has `app` populated by Obsidian. The mock leaves it
   // blank so tests point it at the plugin's App instance.
   (view as unknown as { app: App }).app = plugin.app as unknown as App;
   return view;

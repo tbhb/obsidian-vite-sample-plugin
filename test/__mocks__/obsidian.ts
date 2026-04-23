@@ -3,7 +3,7 @@
  *
  * The real `obsidian` npm package is a types-only shim with no runtime main,
  * so importing it under Vitest throws. This stub provides just enough of the
- * public API for unit tests to import, instantiate, and drive plugin code —
+ * public API for unit tests to import, instantiate, and drive plugin code,
  * including invoking captured callbacks (commands, ribbon, protocol, DOM
  * events, and settings onChange handlers).
  *
@@ -79,7 +79,7 @@ export class Plugin extends Component {
   app: App;
   manifest: Record<string, unknown>;
 
-  // Test introspection — the plugin code registers callbacks here; tests
+  // Test introspection. Plugin code registers callbacks here, and tests
   // invoke them to exercise branches.
   __commands: CapturedCommand[] = [];
   __ribbonIcons: CapturedRibbonIcon[] = [];
@@ -97,8 +97,8 @@ export class Plugin extends Component {
     this.manifest = manifest;
   }
 
-  // Stubs are `async` so the inferred return type matches Obsidian's real
-  // Promise-returning signatures; there is no body to await.
+  // Stubs use `async` so the inferred return type matches Obsidian's real
+  // Promise-returning signatures. No body to await.
   // eslint-disable-next-line @typescript-eslint/require-await
   loadData = vi.fn(async () => null as unknown);
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -201,7 +201,7 @@ export class App {
       getLeavesOfType: vi.fn((_type: string) => [] as WorkspaceLeaf[]),
       getRightLeaf: vi.fn((_split: boolean) => null),
       // `async` keeps the return type aligned with Obsidian's real Promise-
-      // returning signature; no body to await.
+      // returning signature. No body to await.
       // eslint-disable-next-line @typescript-eslint/require-await
       revealLeaf: vi.fn(async (_leaf: WorkspaceLeaf) => undefined),
       detachLeavesOfType: vi.fn((_type: string) => undefined),
@@ -212,7 +212,7 @@ export class App {
         return ref;
       }) as unknown as WorkspaceOn,
       openLinkText: vi.fn(async (_linktext: string, _sourcePath: string, _newLeaf?: unknown) => {
-        // no-op stub — tests assert against the spy directly
+        // no-op stub. Tests assert against the spy directly.
       }),
       trigger: vi.fn((_name: string, ..._args: unknown[]) => undefined),
       __eventHandlers: eventHandlers,
@@ -239,9 +239,9 @@ export class PluginSettingTab {
   hide(): void {}
 }
 
-// Mirrors Obsidian's real `ValueComponent<T>` base class. Having a single
-// implementation of setValue/onChange/__trigger keeps the per-component
-// stubs to just the API surface that actually differs between widgets.
+// Mirrors Obsidian's real `ValueComponent<T>` base class. A single
+// shared `setValue`/`onChange`/`__trigger` surface keeps the per-component
+// stubs to just the API that actually differs between widgets.
 class ValueComponent<T> {
   value: T;
   protected _onChange?: (v: T) => void | Promise<void>;
@@ -639,14 +639,14 @@ export interface Editor {
 export class WorkspaceLeaf {
   view: unknown = null;
   // `async` keeps the return type aligned with Obsidian's real Promise-
-  // returning signature; no body to await.
+  // returning signature. No body to await.
   // eslint-disable-next-line @typescript-eslint/require-await
   setViewState = vi.fn(async (_state: unknown) => undefined);
 }
 
 export class QueryController extends Component {}
 
-// Type-shape stubs so src code importing these symbols still compiles — the
+// Type-shape stubs so src code importing these symbols still compiles. The
 // root `tsconfig.json` aliases `obsidian` to this file.
 export type BasesAllOptions = {
   type: string;
@@ -687,8 +687,8 @@ export interface HoverParent {
 
 export class HoverPopover {}
 
-// Mirror the real Obsidian API surface — Keymap is exported as a class with
-// static helpers, so this stub has to be a class too.
+// Mirror the real Obsidian API surface. The real `Keymap` ships as a class
+// with static helpers, so this stub has to match.
 // biome-ignore lint/complexity/noStaticOnlyClass: mirrors upstream API
 export class Keymap {
   static isModEvent = vi.fn((_evt?: unknown) => false as unknown as boolean);

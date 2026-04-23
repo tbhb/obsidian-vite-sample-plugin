@@ -7,7 +7,7 @@ export class ViteSampleModal extends Modal {
     super(app);
     this.message = message;
     // Scope-registered bindings fire only while the modal is open, so they
-    // cannot collide with a user's global hotkey configuration.
+    // can't collide with a user's global hotkey configuration.
     this.scope.register(['Mod'], 'Enter', () => {
       this.close();
     });

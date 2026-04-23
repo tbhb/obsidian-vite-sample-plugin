@@ -29,8 +29,8 @@ export class StatusBarExample {
   private mount(): void {
     // Grouping spans inside a single item keeps them adjacent. Obsidian
     // only inserts its default gap between separate status bar items, so
-    // use one item when you want tight spacing and multiple items when
-    // you want the built-in separation.
+    // use one item when you want tight spacing and split into separate
+    // items when you want the built-in separation.
     if (!this.greetingItem) {
       this.greetingItem = this.plugin.addStatusBarItem();
     }

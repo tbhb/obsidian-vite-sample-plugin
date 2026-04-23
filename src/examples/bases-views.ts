@@ -17,9 +17,8 @@ export const VITE_SAMPLE_LIST_BASES_VIEW_TYPE = 'vite-sample-bases-list';
 export const VITE_SAMPLE_CARDS_BASES_VIEW_TYPE = 'vite-sample-bases-cards';
 
 export function registerBasesViewExamples(plugin: ViteSamplePlugin): void {
-  // Bases views were introduced in Obsidian 1.10. Feature-detect so the
-  // plugin still loads on older vaults that match the manifest's
-  // minAppVersion.
+  // Obsidian 1.10 added Bases views. Feature-detect so the plugin still
+  // loads on older vaults that match the manifest's minAppVersion.
   if (typeof plugin.registerBasesView !== 'function') {
     return;
   }

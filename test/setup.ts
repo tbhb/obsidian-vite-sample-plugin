@@ -13,8 +13,8 @@ import '@testing-library/jest-dom/vitest';
 type ElOptions = { text?: string; cls?: string | string[]; attr?: Record<string, string> };
 
 function toClassList(cls: string | string[]): string[] {
-  // Obsidian accepts either `string` or `string[]` for `cls`. A string may
-  // contain multiple classes separated by whitespace (e.g. "mod-cta tw:mt-2").
+  // Obsidian accepts either `string` or `string[]` for `cls`. A string
+  // may contain whitespace-separated class names, as in `mod-cta tw:mt-2`.
   const raw = Array.isArray(cls) ? cls : [cls];
   return raw.flatMap((c) => c.split(/\s+/).filter(Boolean));
 }

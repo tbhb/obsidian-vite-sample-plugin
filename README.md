@@ -69,25 +69,19 @@ Note: tests attach `view.contentEl` and `modal.contentEl` to `document.body` in 
 
 ### Releases (release-please + BRAT)
 
-[release-please] fully automates releases:
-
-- **Stable channel.** Push [conventional commits][conventional-commits] to `main`. release-please opens a release PR that bumps `package.json` and `manifest.json`, appends an entry to `versions.json` keyed on the new version with `manifest.json`'s current `minAppVersion` as the value, and updates `CHANGELOG.md`. Merging the PR creates a bare-semver tag like `1.2.0`, with no `v` prefix as Obsidian requires, and a GitHub release. A follow-up job then runs `pnpm build` on the tag and uploads `main.js`, `manifest.json`, and `styles.css` as release assets.
-- **Beta channel.** Push to `beta`. Same flow, but driven by `.github/release-please-config.beta.json`, which sets `"versioning": "prerelease"` and `"prerelease-type": "beta"`. That produces tags like `1.2.0-beta.1` and marks the GitHub release as a pre-release.
+[release-please] fully automates releases on a single-branch prerelease flow. Push [conventional commits][conventional-commits] to `main` and release-please opens a release PR that bumps `package.json` plus `manifest.json` and refreshes `CHANGELOG.md`. A workflow step on the PR branch appends a matching entry to `versions.json` keyed on the new version with `manifest.json`'s current `minAppVersion` as the value. Merging the PR creates a bare-semver tag like `1.2.0`, with no `v` prefix as Obsidian requires, and a GitHub release. A follow-up job then runs `pnpm build` on the tag, generates a [SLSA provenance][slsa] attestation via sigstore, and uploads `main.js`, `manifest.json`, and `styles.css` as release assets.
 
 [release-please]: https://github.com/googleapis/release-please-action
 [conventional-commits]: https://www.conventionalcommits.org/
+[slsa]: https://slsa.dev/
+
+Stable versus beta comes down to the commit that triggers the release. A normal `feat` or `fix` bump produces a tag like `1.2.0`, unmarked on GitHub. Adding a `Release-As: 1.2.0-beta.1` footer to a qualifying commit cuts a release at that exact version. release-please v5 auto-flags the GitHub release as prerelease because the version carries a prerelease qualifier. [BRAT]'s beta-tester flow honors that flag, so opted-in users get the beta without any branch-level distinction.
 
 `versions.json` needs a new entry on every release, not an in-place update. release-please has no built-in way to handle this. A workflow step syncs `versions.json` on the release PR branch so the new entry lands in the same commit as the version bump.
 
-**BRAT compatibility.** [BRAT] works with the stable channel out of the box. For beta testers:
-
-- Point them at `tbhb/obsidian-vite-sample-plugin`, or wherever this repository lives, in BRAT's "Add beta plugin" dialog.
-- Push betas to the `beta` branch. BRAT reads each release's `manifest.json` asset and respects GitHub's `prerelease: true` flag, so beta testers automatically get the `-beta.N` releases while users installing from the community catalog only see stable versions.
-- Modern BRAT doesn't use the legacy `manifest-beta.json` file. It reads the GitHub release asset plus the pre-release flag.
-
 [brat]: https://tfthacker.com/brat-developers
 
-**Required `GITHUB_TOKEN` scopes.** The `release` workflow runs with `contents: write` and `pull-requests: write`, which the built-in `GITHUB_TOKEN` provides. No PATs required.
+**Release-bot credentials.** release-please runs with a token minted from the `tbhb-releases` GitHub App. The workflow reads `RELEASE_BOT_APP_ID` as a repo variable and `RELEASE_BOT_PRIVATE_KEY` as a repo secret. The App token bypasses GitHub's recursion-prevention rule, so the release PR push triggers CI. It also bypasses the first-time-contributor workflow-approval gate. The `publish-release` job still uses the built-in `GITHUB_TOKEN` for asset upload and sigstore OIDC.
 
 ### Linting split
 

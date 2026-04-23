@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - beta
 
 permissions:
   contents: write
@@ -17,28 +16,40 @@ concurrency:
 
 env:
   # Opt JS-based actions into the Node 24 runtime early (the default flip
-  # happens 2026-06-02). Silences deprecation warnings on older actions
-  # like googleapis/release-please-action@v4.4.0 which still target Node 20.
+  # happens 2026-06-02). Silences deprecation warnings on any transitive
+  # action that still targets Node 20.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   release-please:
-    name: release-please (${{ github.ref_name }})
+    name: release-please
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       pr: ${{ steps.release.outputs.pr }}
     steps:
+      # The default GITHUB_TOKEN is subject to GitHub's recursion-prevention
+      # rule: pushes it authors do not trigger other workflows. That means
+      # release-please PRs never run CI, and the maintainer has to push an
+      # empty commit to unblock the merge gate. Swap in a token minted from
+      # the `tbhb-releases` GitHub App so the PR branch push fires CI the
+      # same as any human-authored push. Apps also bypass the
+      # first-time-contributor workflow-approval gate on forks.
+      - name: Mint release bot token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3  # v3.1.1
+        with:
+          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
       - name: Run release-please
         id: release
-        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38  # v4.4.0
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
         with:
-          target-branch: ${{ github.ref_name }}
-          config-file: >-
-            ${{ github.ref_name == 'beta'
-            && '.github/release-please-config.beta.json'
-            || '.github/release-please-config.json' }}
+          token: ${{ steps.app-token.outputs.token }}
+          target-branch: main
+          config-file: .github/release-please-config.json
           manifest-file: .github/release-please-manifest.json
 
       # release-please can update values in manifest.json via `extra-files`,
@@ -51,12 +62,12 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Sync versions.json on release PR branch
         if: ${{ steps.release.outputs.pr }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           # Pass the PR JSON as a plain string — GitHub Actions evaluates env
           # expressions even when the step's `if:` is false, so using
           # `fromJSON()` here would blow up at template-eval time whenever
@@ -82,8 +93,8 @@ jobs:
             '. + {($v): $m}' versions.json > versions.json.tmp
           mv versions.json.tmp versions.json
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "tbhb-releases[bot]"
+          git config user.email "${{ vars.RELEASE_BOT_APP_ID }}+tbhb-releases[bot]@users.noreply.github.com"
           git add versions.json
           git commit -m "chore: sync versions.json to ${NEW_VERSION}"
           git push origin "$BRANCH"

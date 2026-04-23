@@ -48,7 +48,6 @@ test/
 ├── workflows/ci.yml        # Lint, Build, Test, Documentation jobs
 ├── workflows/release.yml   # release-please + build + attest + upload
 ├── release-please-config.json
-├── release-please-config.beta.json
 ├── release-please-manifest.json
 └── dependabot.yml
 manifest.json               # Obsidian plugin manifest
@@ -120,10 +119,11 @@ Add new technical terms to `cspell-words.txt`. Avoid em-dashes entirely, use com
 
 ## Release process
 
-- [release-please][release-please] and [BRAT][brat] handle releases. Configs live under `.github/`.
-- Stable channel: push conventional commits to `main`. release-please opens a release PR that bumps `package.json` and `manifest.json`, appends to `versions.json`, and updates `CHANGELOG.md`. Merging creates a bare-semver tag like `1.2.0`, with no `v` prefix per Obsidian's convention, and a GitHub release. A follow-up job builds, attests via [SLSA provenance][slsa], then uploads the assets.
-- Beta channel: push to the `beta` branch. Same flow, but driven by `.github/release-please-config.beta.json`. Produces `1.2.0-beta.1`-style tags marked as pre-releases. BRAT testers subscribe to these automatically.
-- Only `feat:`, `fix:`, and commits with breaking changes trigger a release PR. `chore:`, `docs:`, `refactor:`, `style:`, `test:`, `ci:`, and `build:` commits land without opening one.
+- [release-please][release-please] and [BRAT][brat] handle releases on a single-branch prerelease flow. Configs live under `.github/`.
+- Push conventional commits to `main`. release-please opens a release PR that bumps `package.json` and `manifest.json`, appends to `versions.json`, and updates `CHANGELOG.md`. Merging creates a bare-semver tag like `1.2.0`, with no `v` prefix per Obsidian's convention, and a GitHub release. A follow-up job builds, attests via [SLSA provenance][slsa], then uploads the assets.
+- Cut a beta by adding a `Release-As: 1.2.0-beta.1` footer to a qualifying commit. release-please v5 auto-flags the GitHub release as prerelease because the version carries a prerelease qualifier. BRAT testers get the beta automatically; community-catalog users stay on the latest stable.
+- Only `feat:`, `fix:`, and commits with breaking changes trigger a release PR. `chore:`, `docs:`, `refactor:`, `style:`, `test:`, `ci:`, and `build:` commits land without opening one unless they carry a `Release-As:` footer.
+- release-please runs under a GitHub App token minted from the `tbhb-releases` App. The workflow reads `RELEASE_BOT_APP_ID` as a repo variable and `RELEASE_BOT_PRIVATE_KEY` as a repo secret. An App-issued token lets the release PR push trigger CI, and it bypasses the first-time-contributor approval gate.
 - Don't hand-edit `manifest.json` `version`, `package.json` `version`, `versions.json`, or `CHANGELOG.md`. Don't create tags manually. release-please owns those files.
 
 [release-please]: https://github.com/googleapis/release-please-action
@@ -146,7 +146,7 @@ Add new technical terms to `cspell-words.txt`. Avoid em-dashes entirely, use com
 - Write reference-style markdown links with definitions at the bottom of the paragraph.
 - Avoid em-dashes, passive voice, and italicized copulas in prose.
 - Keep paragraphs on one line. No hard wrap.
-- Don't force-push to `main` or `beta`.
+- Don't force-push to `main`. Don't force-push release-please PR branches either. Those force-pushes orphan the `autorelease: tagged` label that release-please relies on to track the last released commit.
 - Don't bypass hooks.
 - Don't hand-edit release-managed files.
 

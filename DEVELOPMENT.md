@@ -149,7 +149,7 @@ Releases run through [release-please][release-please] on every push to `main`. T
 
 Review the release PR and merge it via squash. Merging creates a GitHub release tagged with bare semver, with no `v` prefix per Obsidian's convention. A follow-up job then runs `pnpm build`, generates a [SLSA provenance][slsa] attestation via sigstore, then uploads `main.js`, `main.js.map`, `manifest.json`, and `styles.css` as release assets.
 
-Cut a beta by adding a `Release-As: 1.2.0-beta.1` footer to a qualifying commit. release-please produces a release at that exact version and auto-flags it as prerelease on GitHub. [BRAT][brat] testers get the beta automatically. Community-catalog users stay on the latest stable.
+Cut a beta by adding a `Release-As: 1.2.0-beta.1` footer to a qualifying commit. release-please produces a release at that exact version. The package config sets `"prerelease": true`, so release-please flags the GitHub release as prerelease whenever the version carries a prerelease qualifier. Stable versions stay unflagged. [BRAT][brat] testers get the beta automatically. Community-catalog users stay on the latest stable.
 
 **Don't hand-edit release-managed files.** release-please owns `manifest.json` version, `package.json` version, `versions.json`, `CHANGELOG.md`, and the git tags.
 

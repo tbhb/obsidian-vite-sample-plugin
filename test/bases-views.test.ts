@@ -63,6 +63,42 @@ function getCardsView(plugin: ViteSamplePlugin, containerEl: HTMLElement) {
   return reg.factory({} as QueryController, containerEl) as BasesView;
 }
 
+type ViewFactory = (plugin: ViteSamplePlugin, containerEl: HTMLElement) => BasesView;
+
+function runView(
+  getView: ViewFactory,
+  plugin: ViteSamplePlugin,
+  config: Record<string, unknown>,
+  order: string[],
+  groups: FakeGroup[],
+): HTMLElement {
+  const containerEl = document.createElement('div');
+  document.body.appendChild(containerEl);
+  const view = getView(plugin, containerEl) as BasesView & { onDataUpdated: () => void };
+  view.config = fakeConfig(config, order);
+  view.data = { groupedData: groups };
+  view.onDataUpdated();
+  return containerEl;
+}
+
+function ungrouped(...entries: FakeEntry[]): FakeGroup[] {
+  return [{ key: undefined, hasKey: () => false, entries }];
+}
+
+function grouped(key: string, ...entries: FakeEntry[]): FakeGroup[] {
+  return [{ key: val(key), hasKey: () => true, entries }];
+}
+
+function fileEntry(
+  file: { path: string; basename: string; name?: string },
+  values: Record<string, string>,
+): FakeEntry {
+  return {
+    file: { path: file.path, basename: file.basename, name: file.name ?? file.basename },
+    getValue: (id) => (id in values ? val(values[id] ?? '') : null),
+  };
+}
+
 beforeEach(() => {
   __resetObsidianMocks();
 });
@@ -95,20 +131,12 @@ describe('registerBasesViewExamples', () => {
 });
 
 describe('ViteSampleListBasesView.onDataUpdated', () => {
-  function run(
+  const run = (
     plugin: ViteSamplePlugin,
     config: Record<string, unknown>,
     order: string[],
     groups: FakeGroup[],
-  ): HTMLElement {
-    const containerEl = document.createElement('div');
-    document.body.appendChild(containerEl);
-    const view = getListView(plugin, containerEl) as BasesView & { onDataUpdated: () => void };
-    view.config = fakeConfig(config, order);
-    view.data = { groupedData: groups };
-    view.onDataUpdated();
-    return containerEl;
-  }
+  ) => runView(getListView, plugin, config, order, groups);
 
   it('renders separator, group heading, and file link with defaults', () => {
     const plugin = makePlugin();
@@ -117,12 +145,7 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
       getValue: (id) =>
         id === 'file.name' ? val('apple') : id === 'note.tags' ? val('red') : null,
     };
-    const containerEl = run(
-      plugin,
-      {},
-      ['file.name', 'note.tags'],
-      [{ key: val('Fruits'), hasKey: () => true, entries: [entry] }],
-    );
+    const containerEl = run(plugin, {}, ['file.name', 'note.tags'], grouped('Fruits', entry));
 
     expect(containerEl.querySelector('.vite-sample-bases-list__group-heading')?.textContent).toBe(
       'Fruits',
@@ -141,12 +164,7 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
       file: { path: 'x.md', basename: 'x', name: 'x' },
       getValue: (id) => (id === 'note.a' ? val('alpha') : id === 'note.b' ? val('beta') : null),
     };
-    const containerEl = run(
-      plugin,
-      { separator: '' },
-      ['note.a', 'note.b'],
-      [{ key: undefined, hasKey: () => false, entries: [entry] }],
-    );
+    const containerEl = run(plugin, { separator: '' }, ['note.a', 'note.b'], ungrouped(entry));
 
     expect(containerEl.querySelector('.vite-sample-bases-list__separator')?.textContent).toBe(
       ' · ',
@@ -155,15 +173,12 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
 
   it('hides group headings when showGroupHeadings is false', () => {
     const plugin = makePlugin();
-    const entry: FakeEntry = {
-      file: { path: 'x.md', basename: 'x', name: 'x' },
-      getValue: (id) => (id === 'note.tags' ? val('alpha') : null),
-    };
+    const entry = fileEntry({ path: 'x.md', basename: 'x' }, { 'note.tags': 'alpha' });
     const containerEl = run(
       plugin,
       { showGroupHeadings: false, separator: ' / ' },
       ['note.tags'],
-      [{ key: val('Fruits'), hasKey: () => true, entries: [entry] }],
+      grouped('Fruits', entry),
     );
 
     expect(containerEl.querySelector('.vite-sample-bases-list__group-heading')).toBeNull();
@@ -172,16 +187,8 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
 
   it('omits the heading when the group has no key', () => {
     const plugin = makePlugin();
-    const entry: FakeEntry = {
-      file: { path: 'x.md', basename: 'x', name: 'x' },
-      getValue: (id) => (id === 'note.tags' ? val('alpha') : null),
-    };
-    const containerEl = run(
-      plugin,
-      {},
-      ['note.tags'],
-      [{ key: undefined, hasKey: () => false, entries: [entry] }],
-    );
+    const entry = fileEntry({ path: 'x.md', basename: 'x' }, { 'note.tags': 'alpha' });
+    const containerEl = run(plugin, {}, ['note.tags'], ungrouped(entry));
 
     expect(containerEl.querySelector('.vite-sample-bases-list__group-heading')).toBeNull();
   });
@@ -201,7 +208,7 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
       plugin,
       {},
       ['note.blank', 'note.missing', 'note.tags'],
-      [{ key: undefined, hasKey: () => false, entries: [entry] }],
+      ungrouped(entry),
     );
 
     const values = containerEl.querySelectorAll('.vite-sample-bases-list__value');
@@ -219,12 +226,7 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
       file: { path: 'notes/apple.md', basename: 'apple', name: 'apple' },
       getValue: (id) => (id === 'file.name' ? val('apple') : null),
     };
-    const containerEl = run(
-      plugin,
-      {},
-      ['file.name'],
-      [{ key: undefined, hasKey: () => false, entries: [entry] }],
-    );
+    const containerEl = run(plugin, {}, ['file.name'], ungrouped(entry));
     const link = containerEl.querySelector<HTMLAnchorElement>('.vite-sample-bases-list__link');
     expect(link).not.toBeNull();
 
@@ -252,19 +254,15 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
 });
 
 describe('ViteSampleCardsBasesView.onDataUpdated', () => {
-  function run(
+  const run = (
     plugin: ViteSamplePlugin,
     config: Record<string, unknown>,
     order: string[],
     groups: FakeGroup[],
-  ): HTMLElement {
-    const containerEl = document.createElement('div');
-    document.body.appendChild(containerEl);
-    const view = getCardsView(plugin, containerEl) as BasesView & { onDataUpdated: () => void };
-    view.config = fakeConfig(config, order);
-    view.data = { groupedData: groups };
-    view.onDataUpdated();
-    return containerEl;
+  ) => runView(getCardsView, plugin, config, order, groups);
+
+  function cardsRoot(containerEl: HTMLElement): HTMLElement | null {
+    return containerEl.querySelector<HTMLElement>('.vite-sample-bases-cards');
   }
 
   it('renders cards with default size and labels on', () => {
@@ -273,15 +271,9 @@ describe('ViteSampleCardsBasesView.onDataUpdated', () => {
       file: { path: 'a.md', basename: 'Apple', name: 'Apple' },
       getValue: (id) => (id === 'note.author' ? val('Alice') : null),
     };
-    const containerEl = run(
-      plugin,
-      {},
-      ['note.author'],
-      [{ key: undefined, hasKey: () => false, entries: [entry] }],
-    );
+    const containerEl = run(plugin, {}, ['note.author'], ungrouped(entry));
 
-    const root = containerEl.querySelector<HTMLElement>('.vite-sample-bases-cards');
-    expect(root?.dataset.cardSize).toBe('medium');
+    expect(cardsRoot(containerEl)?.dataset.cardSize).toBe('medium');
     expect(containerEl.querySelector('.vite-sample-bases-card__title')?.textContent).toBe('Apple');
     expect(containerEl.querySelector('.vite-sample-bases-card__label')?.textContent).toBe('author');
     expect(containerEl.querySelector('.vite-sample-bases-card__value')?.textContent).toBe('Alice');
@@ -302,11 +294,10 @@ describe('ViteSampleCardsBasesView.onDataUpdated', () => {
       plugin,
       { cardSize: 'large', showLabels: false },
       ['note.author', 'note.missing', 'note.blank'],
-      [{ key: undefined, hasKey: () => false, entries: [entry] }],
+      ungrouped(entry),
     );
 
-    const root = containerEl.querySelector<HTMLElement>('.vite-sample-bases-cards');
-    expect(root?.dataset.cardSize).toBe('large');
+    expect(cardsRoot(containerEl)?.dataset.cardSize).toBe('large');
     expect(containerEl.querySelectorAll('.vite-sample-bases-card__label')).toHaveLength(0);
     const values = containerEl.querySelectorAll('.vite-sample-bases-card__value');
     expect(values).toHaveLength(1);

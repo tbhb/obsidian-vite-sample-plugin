@@ -304,19 +304,23 @@ describe('ViteSamplePlugin registered callbacks', () => {
     expect(() => item?.__trigger()).not.toThrow();
   });
 
+  function editorMenuCase(selection = '') {
+    return {
+      handler: getWorkspaceHandler('editor-menu'),
+      menu: new Menu(),
+      editor: { getSelection: vi.fn(() => selection), replaceSelection: vi.fn() },
+    };
+  }
+
   it('editor-menu handler ignores non-MarkdownView views', () => {
-    const handler = getWorkspaceHandler('editor-menu');
-    const menu = new Menu();
-    const editor = { getSelection: vi.fn(() => ''), replaceSelection: vi.fn() };
+    const { handler, menu, editor } = editorMenuCase();
     handler(menu, editor, {});
     expect(menu.items).toHaveLength(0);
     expect(editor.getSelection).not.toHaveBeenCalled();
   });
 
   it('editor-menu handler adds only the insert item when there is no selection', () => {
-    const handler = getWorkspaceHandler('editor-menu');
-    const menu = new Menu();
-    const editor = { getSelection: vi.fn(() => ''), replaceSelection: vi.fn() };
+    const { handler, menu, editor } = editorMenuCase();
 
     handler(menu, editor, new MarkdownView());
 
@@ -328,9 +332,7 @@ describe('ViteSamplePlugin registered callbacks', () => {
   });
 
   it('editor-menu handler adds both items when there is a selection', () => {
-    const handler = getWorkspaceHandler('editor-menu');
-    const menu = new Menu();
-    const editor = { getSelection: vi.fn(() => 'hello'), replaceSelection: vi.fn() };
+    const { handler, menu, editor } = editorMenuCase('hello');
 
     handler(menu, editor, new MarkdownView());
 

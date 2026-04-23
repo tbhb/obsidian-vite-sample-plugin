@@ -206,68 +206,74 @@ export class PluginSettingTab {
   hide(): void {}
 }
 
-class TextComponent {
-  value = '';
-  private _onChange?: (v: string) => void | Promise<void>;
+// Mirrors Obsidian's real `ValueComponent<T>` base class. Having a single
+// implementation of setValue/onChange/__trigger keeps the per-component
+// stubs to just the API surface that actually differs between widgets.
+class ValueComponent<T> {
+  value: T;
+  protected _onChange?: (v: T) => void | Promise<void>;
+
+  constructor(initial: T) {
+    this.value = initial;
+  }
+
+  setValue(v: T): this {
+    this.value = v;
+    return this;
+  }
+
+  onChange(cb: (v: T) => void | Promise<void>): this {
+    this._onChange = cb;
+    return this;
+  }
+
+  async __trigger(v: T): Promise<void> {
+    this.value = v;
+    await this._onChange?.(v);
+  }
+}
+
+class ClickComponent {
+  protected _onClick?: () => void | Promise<void>;
+
+  onClick(cb: () => void | Promise<void>): this {
+    this._onClick = cb;
+    return this;
+  }
+
+  async __trigger(): Promise<void> {
+    await this._onClick?.();
+  }
+}
+
+class TextComponent extends ValueComponent<string> {
+  constructor() {
+    super('');
+  }
   setPlaceholder(_p: string): this {
     return this;
   }
-  setValue(v: string): this {
-    this.value = v;
-    return this;
-  }
-  onChange(cb: (v: string) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: string): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
+}
+
+class ToggleComponent extends ValueComponent<boolean> {
+  constructor() {
+    super(false);
   }
 }
 
-class ToggleComponent {
-  value = false;
-  private _onChange?: (v: boolean) => void | Promise<void>;
-  setValue(v: boolean): this {
-    this.value = v;
-    return this;
+class SliderComponent extends ValueComponent<number> {
+  constructor() {
+    super(0);
   }
-  onChange(cb: (v: boolean) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: boolean): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
-  }
-}
-
-class SliderComponent {
-  value = 0;
-  private _onChange?: (v: number) => void | Promise<void>;
   setLimits(_min: number, _max: number, _step: number): this {
-    return this;
-  }
-  setValue(v: number): this {
-    this.value = v;
     return this;
   }
   setDynamicTooltip(): this {
     return this;
   }
-  onChange(cb: (v: number) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: number): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
-  }
 }
 
-class ButtonComponent {
-  private _onClick?: () => void | Promise<void>;
+class ButtonComponent extends ClickComponent {
   setButtonText(_t: string): this {
     return this;
   }
@@ -283,17 +289,9 @@ class ButtonComponent {
   setIcon(_i: string): this {
     return this;
   }
-  onClick(cb: () => void | Promise<void>): this {
-    this._onClick = cb;
-    return this;
-  }
-  async __trigger(): Promise<void> {
-    await this._onClick?.();
-  }
 }
 
-class ExtraButtonComponent {
-  private _onClick?: () => void | Promise<void>;
+class ExtraButtonComponent extends ClickComponent {
   setIcon(_i: string): this {
     return this;
   }
@@ -303,59 +301,31 @@ class ExtraButtonComponent {
   setDisabled(_d: boolean): this {
     return this;
   }
-  onClick(cb: () => void | Promise<void>): this {
-    this._onClick = cb;
-    return this;
-  }
-  async __trigger(): Promise<void> {
-    await this._onClick?.();
-  }
 }
 
-class TextAreaComponent {
-  value = '';
-  private _onChange?: (v: string) => void | Promise<void>;
+class TextAreaComponent extends ValueComponent<string> {
+  constructor() {
+    super('');
+  }
   setPlaceholder(_p: string): this {
     return this;
   }
-  setValue(v: string): this {
-    this.value = v;
-    return this;
-  }
-  onChange(cb: (v: string) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: string): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
-  }
 }
 
-class SearchComponent {
-  value = '';
-  private _onChange?: (v: string) => void | Promise<void>;
+class SearchComponent extends ValueComponent<string> {
+  constructor() {
+    super('');
+  }
   setPlaceholder(_p: string): this {
     return this;
   }
-  setValue(v: string): this {
-    this.value = v;
-    return this;
-  }
-  onChange(cb: (v: string) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: string): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
-  }
 }
 
-class DropdownComponent {
-  value = '';
+class DropdownComponent extends ValueComponent<string> {
   options: Record<string, string> = {};
-  private _onChange?: (v: string) => void | Promise<void>;
+  constructor() {
+    super('');
+  }
   addOption(key: string, label: string): this {
     this.options[key] = label;
     return this;
@@ -364,44 +334,22 @@ class DropdownComponent {
     Object.assign(this.options, opts);
     return this;
   }
-  setValue(v: string): this {
-    this.value = v;
-    return this;
-  }
-  onChange(cb: (v: string) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: string): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
-  }
 }
 
-class ColorComponent {
-  value = '';
-  private _onChange?: (v: string) => void | Promise<void>;
-  setValue(v: string): this {
-    this.value = v;
-    return this;
+class ColorComponent extends ValueComponent<string> {
+  constructor() {
+    super('');
   }
   setValueRgb(_rgb: { r: number; g: number; b: number }): this {
     return this;
   }
-  onChange(cb: (v: string) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: string): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
-  }
 }
 
-class MomentFormatComponent {
-  value = '';
+class MomentFormatComponent extends ValueComponent<string> {
   sampleEl: HTMLElement | null = null;
-  private _onChange?: (v: string) => void | Promise<void>;
+  constructor() {
+    super('');
+  }
   setPlaceholder(_p: string): this {
     return this;
   }
@@ -411,18 +359,6 @@ class MomentFormatComponent {
   setSampleEl(el: HTMLElement): this {
     this.sampleEl = el;
     return this;
-  }
-  setValue(v: string): this {
-    this.value = v;
-    return this;
-  }
-  onChange(cb: (v: string) => void | Promise<void>): this {
-    this._onChange = cb;
-    return this;
-  }
-  async __trigger(v: string): Promise<void> {
-    this.value = v;
-    await this._onChange?.(v);
   }
 }
 

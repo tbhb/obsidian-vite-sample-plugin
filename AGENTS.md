@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repository. The scaffold targets the current [Obsidian][obsidian] plugin API and builds with [Vite 8][vite] ([Rolldown][rolldown]), [Tailwind CSS 4][tailwind], [Vitest 4][vitest], [Testing Library][testing-library], [Biome 2][biome], [dependency-cruiser][depcruise], [Knip 6][knip], [TypeScript][typescript], and [pnpm][pnpm].
+Guidance for AI coding agents working in this repository. The scaffold targets the current [Obsidian][obsidian] plugin API and builds with [Vite 8][vite] ([Rolldown][rolldown]), [Tailwind CSS 4][tailwind], [Vitest 4][vitest], [Testing Library][testing-library], [Biome 2][biome], [dependency-cruiser][depcruise], [jscpd][jscpd], [Knip 6][knip], [TypeScript][typescript], and [pnpm][pnpm].
 
 [obsidian]: https://obsidian.md/
 [vite]: https://vite.dev/
@@ -10,6 +10,7 @@ Guidance for AI coding agents working in this repository. The scaffold targets t
 [testing-library]: https://testing-library.com/
 [biome]: https://biomejs.dev/
 [depcruise]: https://github.com/sverweij/dependency-cruiser
+[jscpd]: https://github.com/kucherenko/jscpd
 [knip]: https://knip.dev/
 [typescript]: https://www.typescriptlang.org/
 [pnpm]: https://pnpm.io/
@@ -56,7 +57,7 @@ manifest.json               # Obsidian plugin manifest
 versions.json               # plugin version -> minAppVersion map
 ```
 
-Config lives at the repo root: `biome.json`, `eslint.config.mts`, `.dependency-cruiser.cjs`, `knip.json`, `cspell.json` + `cspell-words.txt`, `.rumdl.toml`, `.vale.ini` + `.vale/`, `.yamllint.yaml` + `.yamllintignore`, `commitlint.config.js`, `vite.config.ts`, `vitest.config.ts`, and both `tsconfig.json` plus `tsconfig.test.json`.
+Config lives at the repo root: `biome.json`, `eslint.config.mts`, `.dependency-cruiser.cjs`, `.jscpd.json`, `knip.json`, `cspell.json` + `cspell-words.txt`, `.rumdl.toml`, `.vale.ini` + `.vale/`, `.yamllint.yaml` + `.yamllintignore`, `commitlint.config.js`, `vite.config.ts`, `vitest.config.ts`, and both `tsconfig.json` plus `tsconfig.test.json`.
 
 ## Commands reference
 
@@ -71,7 +72,8 @@ pnpm format           # biome format --write
 pnpm format:markdown  # rumdl fmt .
 pnpm lint             # biome lint + eslint
 pnpm lint:deps        # dependency-cruiser on src + test
-pnpm lint:knip        # knip — unused files, exports, deps
+pnpm lint:jscpd       # jscpd copy-paste detector on src + test
+pnpm lint:knip        # knip, unused files, exports, deps
 pnpm lint:markdown    # rumdl check
 pnpm lint:prose       # vale
 pnpm lint:spelling    # cspell
@@ -89,6 +91,7 @@ pnpm vale:sync        # download vale style packages
 - `eslint-plugin-sonarjs` contributes `sonarjs/cognitive-complexity` at the default threshold of 15. Prefer extracting helper functions over raising the threshold.
 - [dependency-cruiser][depcruise] guards the module graph via `.dependency-cruiser.cjs`. It forbids runtime circular dependencies, orphan modules, unresolvable imports, dev-dependency imports from `src/`, duplicate dependency-type declarations, and `src/` depending on `test/`. Cycles composed only of `import type` edges pass, since those edges vanish after tsc emits. The rule exempts `obsidian` and `tslib` from the dev-dep check: the Obsidian host supplies `obsidian` at runtime, and the TypeScript compiler injects `tslib` helpers.
 - [Knip][knip] catches unused files, exports, and dependencies via `knip.json`. The Vite and Vitest plugins auto-discover entries from `vite.config.ts` and `vitest.config.ts`, so the config only declares the project glob plus a couple of escape hatches. `tailwindcss` sits in `ignoreDependencies` because `src/styles.css` imports it via `@import`, which knip doesn't scan. External binaries called from npm scripts sit in `ignoreBinaries` so knip skips them; the list covers `actionlint`, `rumdl`, `vale`, and `yamllint`.
+- [jscpd][jscpd] detects copy-paste duplication across `src/` and `test/` via `.jscpd.json`. The config sets `threshold: 0` so any clone fails the lint, honors `.gitignore`, and uses the default `mode: mild` with `minTokens: 50` and `minLines: 5`. Prefer extracting a shared helper or fixture over silencing a clone. The on-demand `html` reporter writes to `./report/`, which `.gitignore` excludes.
 - Strict TypeScript with ES2022 target, `noUncheckedIndexedAccess`, and `isolatedModules`. Two tsconfigs: `tsconfig.json` keeps real `obsidian` types for `src/`, while `tsconfig.test.json` aliases `obsidian` to the mock for tests.
 - Avoid default exports except the plugin entry at `src/main.ts`.
 - Use CSS classes, never inline styles. Tailwind utilities require the `tw:` prefix per v4 variant syntax. Hand-written classes live under `@layer components` in `src/styles.css`.

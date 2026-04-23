@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1-beta.1](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.2.0...0.2.1-beta.1) (2026-04-23)
+
+
+### Miscellaneous Chores
+
+* validate App token release pipeline ([130e50e](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/130e50ee12dc3223f5be5eff31fdce8766fb528e))
+
 ## [0.2.0](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.1.1...0.2.0) (2026-04-11)
 
 

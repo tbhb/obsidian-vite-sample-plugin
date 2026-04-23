@@ -22,7 +22,7 @@ export default class ViteSamplePlugin extends Plugin {
   readonly statusBar = new StatusBarExample(this);
   readonly tick = new TickExample(this);
 
-  async onload(): Promise<void> {
+  override async onload(): Promise<void> {
     await this.loadSettings();
 
     this.registerView(VITE_SAMPLE_VIEW_TYPE, (leaf) => new ViteSampleView(leaf, this));
@@ -39,15 +39,15 @@ export default class ViteSamplePlugin extends Plugin {
     this.tick.start();
   }
 
-  onunload(): void {
+  override onunload(): void {
     this.tick.stop();
   }
 
-  onUserEnable(): void {
+  override onUserEnable(): void {
     void this.activateView();
   }
 
-  async onExternalSettingsChange(): Promise<void> {
+  override async onExternalSettingsChange(): Promise<void> {
     await this.loadSettings();
     this.statusBar.refresh();
     this.refreshOpenViews();

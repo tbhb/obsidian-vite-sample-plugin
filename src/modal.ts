@@ -13,7 +13,7 @@ export class ViteSampleModal extends Modal {
     });
   }
 
-  onOpen(): void {
+  override onOpen(): void {
     const { contentEl, titleEl } = this;
     titleEl.setText('Sample message');
 
@@ -22,7 +22,7 @@ export class ViteSampleModal extends Modal {
     body.createEl('p', { text: 'Press escape or click outside to close.' });
   }
 
-  onClose(): void {
+  override onClose(): void {
     this.contentEl.empty();
   }
 }

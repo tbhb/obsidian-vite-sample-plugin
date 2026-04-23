@@ -57,7 +57,7 @@ manifest.json               # Obsidian plugin manifest
 versions.json               # plugin version -> minAppVersion map
 ```
 
-Config lives at the repo root: `biome.json`, `eslint.config.mts`, `.dependency-cruiser.cjs`, `.jscpd.json`, `knip.json`, `cspell.json` + `cspell-words.txt`, `.rumdl.toml`, `.vale.ini` + `.vale/`, `.yamllint.yaml` + `.yamllintignore`, `commitlint.config.js`, `vite.config.ts`, `vitest.config.ts`, and both `tsconfig.json` plus `tsconfig.test.json`.
+Config lives at the repo root: `biome.json`, `eslint.config.mts`, `.dependency-cruiser.cjs`, `.jscpd.json`, `knip.json`, `cspell.json` + `cspell-words.txt`, `.rumdl.toml`, `.vale.ini` + `.vale/`, `.yamllint.yaml` + `.yamllintignore`, `commitlint.config.js`, `vite.config.ts`, `vitest.config.ts`, and `tsconfig.json`.
 
 ## Commands reference
 
@@ -67,7 +67,7 @@ pnpm build            # tsc --noEmit + vite build
 pnpm test             # vitest run
 pnpm test:watch       # vitest in watch mode
 pnpm test:coverage    # vitest run --coverage, enforces 100% thresholds
-pnpm typecheck        # tsc on src and test tsconfigs
+pnpm typecheck        # tsc --noEmit across src + test
 pnpm format           # biome format --write
 pnpm format:markdown  # rumdl fmt .
 pnpm lint             # biome lint + eslint
@@ -88,11 +88,12 @@ pnpm vale:sync        # download vale style packages
 
 - Two-space indentation for everything, enforced by Biome. Single quotes, semicolons, trailing commas, 100-char line width. See `biome.json`.
 - `eslint-plugin-obsidianmd` handles Obsidian submission rules: sentence-case UI strings, no `innerHTML`, no `TFile` casts, no `mod-cta` misuse. ESLint runs only on `src/**/*.ts`.
+- `typescript-eslint` contributes type-aware rules that Biome doesn't cover: the `no-unsafe-*` cluster, `strict-boolean-expressions`, `ban-ts-comment`, `no-unnecessary-type-assertion`, `no-confusing-void-expression`, `restrict-plus-operands`, `restrict-template-expressions`, and `require-await`. Biome owns `no-floating-promises`, `no-misused-promises`, `use-await-thenable`, `no-explicit-any`, `no-non-null-assertion`, and `no-ts-ignore`, so ESLint doesn't duplicate them.
 - `eslint-plugin-sonarjs` contributes `sonarjs/cognitive-complexity` at the default threshold of 15. Prefer extracting helper functions over raising the threshold.
-- [dependency-cruiser][depcruise] guards the module graph via `.dependency-cruiser.cjs`. It forbids runtime circular dependencies, orphan modules, unresolvable imports, dev-dependency imports from `src/`, duplicate dependency-type declarations, and `src/` depending on `test/`. Cycles composed only of `import type` edges pass, since those edges vanish after tsc emits. The rule exempts `obsidian` and `tslib` from the dev-dep check: the Obsidian host supplies `obsidian` at runtime, and the TypeScript compiler injects `tslib` helpers.
+- [dependency-cruiser][depcruise] guards the module graph via `.dependency-cruiser.cjs`. It forbids runtime circular dependencies, orphan modules, unresolvable imports, dev-dependency imports from `src/`, duplicate dependency-type declarations, and `src/` depending on `test/`. Cycles composed only of `import type` edges pass, since those edges vanish after tsc emits. The rule exempts `obsidian` from the dev-dep check because the Obsidian host supplies it at runtime. The `not-to-test` rule exempts `test/__mocks__/obsidian.ts` because the tsconfig aliases `obsidian` to it for type-checking. No runtime edge materializes.
 - [Knip][knip] catches unused files, exports, and dependencies via `knip.json`. The Vite and Vitest plugins auto-discover entries from `vite.config.ts` and `vitest.config.ts`, so the config only declares the project glob plus a couple of escape hatches. `tailwindcss` sits in `ignoreDependencies` because `src/styles.css` imports it via `@import`, which knip doesn't scan. External binaries called from npm scripts sit in `ignoreBinaries` so knip skips them; the list covers `actionlint`, `rumdl`, `vale`, and `yamllint`.
 - [jscpd][jscpd] detects copy-paste duplication across `src/` and `test/` via `.jscpd.json`. The config sets `threshold: 0` so any clone fails the lint, honors `.gitignore`, and uses the default `mode: mild` with `minTokens: 50` and `minLines: 5`. Prefer extracting a shared helper or fixture over silencing a clone. The on-demand `html` reporter writes to `./report/`, which `.gitignore` excludes.
-- Strict TypeScript with ES2022 target, `noUncheckedIndexedAccess`, and `isolatedModules`. Two tsconfigs: `tsconfig.json` keeps real `obsidian` types for `src/`, while `tsconfig.test.json` aliases `obsidian` to the mock for tests.
+- Strict TypeScript with ES2022 target. Flags beyond `strict`: `noUncheckedIndexedAccess`, `noPropertyAccessFromIndexSignature`, `noImplicitOverride`, `exactOptionalPropertyTypes`, `allowUnreachableCode: false`, `allowUnusedLabels: false`, and `verbatimModuleSyntax`. Consequences for code. Index-signature keys need bracket access, as in `dataset['cardSize']`. Every override needs the `override` modifier. Type-only imports need `import type`. One tsconfig covers both `src/` and `test/`. It aliases `obsidian` to `test/__mocks__/obsidian.ts` so tests can reach mock-only helpers such as `__trigger`, and so `src/` and tests type-check against one surface. The mock mirrors the real Obsidian API for types used by `src/`.
 - Avoid default exports except the plugin entry at `src/main.ts`.
 - Use CSS classes, never inline styles. Tailwind utilities require the `tw:` prefix per v4 variant syntax. Hand-written classes live under `@layer components` in `src/styles.css`.
 

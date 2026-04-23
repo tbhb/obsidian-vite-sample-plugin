@@ -12,24 +12,26 @@ export class ViteSampleView extends ItemView {
     this.plugin = plugin;
   }
 
-  getViewType(): string {
+  override getViewType(): string {
     return VITE_SAMPLE_VIEW_TYPE;
   }
 
-  getDisplayText(): string {
+  override getDisplayText(): string {
     return 'Vite sample';
   }
 
-  getIcon(): string {
+  override getIcon(): string {
     return 'sparkles';
   }
 
-  async onOpen(): Promise<void> {
+  override onOpen(): Promise<void> {
     this.render();
+    return Promise.resolve();
   }
 
-  async onClose(): Promise<void> {
+  override onClose(): Promise<void> {
     this.contentEl.empty();
+    return Promise.resolve();
   }
 
   render(): void {

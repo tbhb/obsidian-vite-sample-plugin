@@ -24,14 +24,14 @@ beforeEach(() => {
 describe('ViteSamplePlugin.loadSettings', () => {
   it('falls back to defaults when loadData returns null', async () => {
     const plugin = makePlugin();
-    plugin.loadData = vi.fn(async () => null);
+    plugin.loadData = vi.fn(() => Promise.resolve(null));
     await plugin.loadSettings();
     expect(plugin.settings).toEqual(DEFAULT_SETTINGS);
   });
 
   it('merges stored partial settings over defaults', async () => {
     const plugin = makePlugin();
-    plugin.loadData = vi.fn(async () => ({ greeting: 'stored greeting' }));
+    plugin.loadData = vi.fn(() => Promise.resolve({ greeting: 'stored greeting' }));
     await plugin.loadSettings();
     expect(plugin.settings.greeting).toBe('stored greeting');
     expect(plugin.settings.enableStatusBar).toBe(DEFAULT_SETTINGS.enableStatusBar);
@@ -183,11 +183,12 @@ describe('ViteSamplePlugin registered callbacks', () => {
 
   it('insert-greeting editorCheckCallback branches on view type and checking flag', () => {
     const cmd = plugin.__findCommand('insert-greeting');
-    const editor = { replaceSelection: vi.fn() };
+    const editor = { getSelection: vi.fn(() => ''), replaceSelection: vi.fn() };
     const markdownView = new MarkdownView();
+    const notAView = {} as unknown as MarkdownView;
 
     // Not a MarkdownView → false
-    expect(cmd?.editorCheckCallback?.(true, editor, {})).toBe(false);
+    expect(cmd?.editorCheckCallback?.(true, editor, notAView)).toBe(false);
 
     // MarkdownView, checking=true → true, no replace
     expect(cmd?.editorCheckCallback?.(true, editor, markdownView)).toBe(true);
@@ -215,9 +216,10 @@ describe('ViteSamplePlugin registered callbacks', () => {
       replaceSelection: vi.fn(),
     };
     const markdownView = new MarkdownView();
+    const notAView = {} as unknown as MarkdownView;
 
     // Not a MarkdownView → false
-    expect(cmd?.editorCheckCallback?.(true, editor, {})).toBe(false);
+    expect(cmd?.editorCheckCallback?.(true, editor, notAView)).toBe(false);
 
     // MarkdownView with empty selection → false
     editor.getSelection.mockReturnValueOnce('');
@@ -361,7 +363,7 @@ describe('ViteSamplePlugin registered callbacks', () => {
 describe('ViteSamplePlugin.onExternalSettingsChange', () => {
   it('reloads settings and refreshes UI', async () => {
     const plugin = makePlugin();
-    plugin.loadData = vi.fn(async () => ({ greeting: 'external' }));
+    plugin.loadData = vi.fn(() => Promise.resolve({ greeting: 'external' }));
     await plugin.onExternalSettingsChange();
     expect(plugin.settings.greeting).toBe('external');
   });
@@ -398,7 +400,9 @@ describe('ViteSamplePlugin.restartTick / stopTick', () => {
   it('onunload handles an already-stopped tick (tickHandle === null)', () => {
     const plugin = makePlugin();
     expect(plugin.tick.intervalHandle).toBeNull();
-    expect(() => plugin.onunload()).not.toThrow();
+    expect(() => {
+      plugin.onunload();
+    }).not.toThrow();
   });
 });
 

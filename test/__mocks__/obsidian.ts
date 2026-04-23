@@ -14,15 +14,13 @@ import { vi } from 'vitest';
 
 type AnyFn = (...args: unknown[]) => unknown;
 
-// Loose command shape — real Obsidian typings are richer than our mock's
-// subset, so we accept anything and let plugin code bind more specific types.
 interface CapturedCommand {
   id: string;
   name: string;
-  callback?: (...args: any[]) => any;
-  editorCallback?: (...args: any[]) => any;
-  editorCheckCallback?: (...args: any[]) => any;
-  checkCallback?: (...args: any[]) => any;
+  callback?: () => unknown;
+  editorCallback?: (editor: Editor, ctx: MarkdownView) => unknown;
+  editorCheckCallback?: (checking: boolean, editor: Editor, ctx: MarkdownView) => boolean | void;
+  checkCallback?: (checking: boolean) => boolean | void;
 }
 
 interface CapturedRibbonIcon {
@@ -67,6 +65,14 @@ export class Component {
   registerEvent = vi.fn();
   registerDomEvent = vi.fn();
   registerInterval = vi.fn();
+
+  onload(): Promise<void> | void {
+    // Subclass override point.
+  }
+
+  onunload(): void {
+    // Subclass override point.
+  }
 }
 
 export class Plugin extends Component {
@@ -91,7 +97,11 @@ export class Plugin extends Component {
     this.manifest = manifest;
   }
 
+  // Stubs are `async` so the inferred return type matches Obsidian's real
+  // Promise-returning signatures; there is no body to await.
+  // eslint-disable-next-line @typescript-eslint/require-await
   loadData = vi.fn(async () => null as unknown);
+  // eslint-disable-next-line @typescript-eslint/require-await
   saveData = vi.fn(async (_data: unknown) => undefined);
 
   addRibbonIcon = vi.fn((icon: string, title: string, callback: (evt: MouseEvent) => unknown) => {
@@ -129,14 +139,20 @@ export class Plugin extends Component {
     },
   );
 
-  registerDomEvent = vi.fn((target: EventTarget, event: string, callback: AnyFn) => {
+  override registerDomEvent = vi.fn((target: EventTarget, event: string, callback: AnyFn) => {
     this.__domEvents.push({ target, event, callback: callback as (evt: Event) => unknown });
   });
 
-  registerInterval = vi.fn((handle: number) => {
+  override registerInterval = vi.fn((handle: number) => {
     this.__intervals.push(handle);
     return handle;
   });
+
+  onUserEnable(): void {
+    // Subclass override point.
+  }
+
+  onExternalSettingsChange?(): unknown;
 
   // Test helpers
   __findCommand(id: string): CapturedCommand | undefined {
@@ -146,19 +162,33 @@ export class Plugin extends Component {
 
 interface CapturedWorkspaceEvent {
   event: string;
-  cb: (...args: any[]) => any;
+  cb: (...args: unknown[]) => unknown;
+}
+
+type WorkspaceEventRef = CapturedWorkspaceEvent;
+
+interface WorkspaceOn {
+  (
+    event: 'file-menu',
+    cb: (menu: Menu, file: TAbstractFile, source: string) => unknown,
+  ): WorkspaceEventRef;
+  (
+    event: 'editor-menu',
+    cb: (menu: Menu, editor: Editor, info: MarkdownView) => unknown,
+  ): WorkspaceEventRef;
+  (event: string, cb: (...args: unknown[]) => unknown): WorkspaceEventRef;
 }
 
 export class App {
   workspace: {
     getLeavesOfType: (type: string) => WorkspaceLeaf[];
     getRightLeaf: (split: boolean) => WorkspaceLeaf | null;
-    revealLeaf: (leaf: WorkspaceLeaf) => unknown;
+    revealLeaf: (leaf: WorkspaceLeaf) => Promise<void>;
     detachLeavesOfType: (type: string) => void;
     getActiveViewOfType: (type: unknown) => unknown;
-    on: (event: string, cb: (...args: any[]) => any) => CapturedWorkspaceEvent;
+    on: WorkspaceOn;
     openLinkText: (linktext: string, sourcePath: string, newLeaf?: unknown) => Promise<void>;
-    trigger: (name: string, ...args: any[]) => void;
+    trigger: (name: string, ...args: unknown[]) => void;
     __eventHandlers: CapturedWorkspaceEvent[];
   };
   vault: Record<string, unknown>;
@@ -170,18 +200,21 @@ export class App {
     this.workspace = {
       getLeavesOfType: vi.fn((_type: string) => [] as WorkspaceLeaf[]),
       getRightLeaf: vi.fn((_split: boolean) => null),
-      revealLeaf: vi.fn(),
+      // `async` keeps the return type aligned with Obsidian's real Promise-
+      // returning signature; no body to await.
+      // eslint-disable-next-line @typescript-eslint/require-await
+      revealLeaf: vi.fn(async (_leaf: WorkspaceLeaf) => undefined),
       detachLeavesOfType: vi.fn((_type: string) => undefined),
       getActiveViewOfType: vi.fn(() => null),
-      on: vi.fn((event: string, cb: (...args: any[]) => any) => {
+      on: vi.fn((event: string, cb: (...args: unknown[]) => unknown) => {
         const ref: CapturedWorkspaceEvent = { event, cb };
         eventHandlers.push(ref);
         return ref;
-      }),
+      }) as unknown as WorkspaceOn,
       openLinkText: vi.fn(async (_linktext: string, _sourcePath: string, _newLeaf?: unknown) => {
         // no-op stub — tests assert against the spy directly
       }),
-      trigger: vi.fn((_name: string, ..._args: any[]) => undefined),
+      trigger: vi.fn((_name: string, ..._args: unknown[]) => undefined),
       __eventHandlers: eventHandlers,
     };
     this.vault = {
@@ -601,19 +634,20 @@ export class Menu {
 export interface Editor {
   replaceSelection(text: string): void;
   getSelection(): string;
-  getValue(): string;
-  setValue(text: string): void;
 }
 
 export class WorkspaceLeaf {
   view: unknown = null;
+  // `async` keeps the return type aligned with Obsidian's real Promise-
+  // returning signature; no body to await.
+  // eslint-disable-next-line @typescript-eslint/require-await
   setViewState = vi.fn(async (_state: unknown) => undefined);
 }
 
 export class QueryController extends Component {}
 
-// Type-shape stubs so src code importing these symbols still compiles under
-// `tsconfig.test.json`, which aliases `obsidian` to this file.
+// Type-shape stubs so src code importing these symbols still compiles — the
+// root `tsconfig.json` aliases `obsidian` to this file.
 export type BasesAllOptions = {
   type: string;
   key: string;
@@ -642,6 +676,11 @@ export interface BasesEntryGroup {
   entries: BasesEntry[];
 }
 
+export interface BasesQueryResult {
+  data: BasesEntry[];
+  groupedData: BasesEntryGroup[];
+}
+
 export interface HoverParent {
   hoverPopover: HoverPopover | null;
 }
@@ -668,8 +707,13 @@ export function parsePropertyId(propertyId: string): { type: string; name: strin
 // populate before driving onDataUpdated.
 export class BasesView extends Component {
   app: App | null = null;
-  config: any = null;
-  data: any = null;
+  config: BasesViewConfig = {
+    get: () => undefined,
+    set: () => undefined,
+    getOrder: () => [],
+    getDisplayName: (id) => id,
+  };
+  data: BasesQueryResult = { data: [], groupedData: [] };
   allProperties: string[] = [];
   controller: unknown;
 

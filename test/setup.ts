@@ -22,7 +22,7 @@ function toClassList(cls: string | string[]): string[] {
 function applyOptions(el: HTMLElement, opts?: ElOptions): HTMLElement {
   if (!opts) return el;
   if (opts.text !== undefined) el.textContent = opts.text;
-  if (opts.cls) {
+  if (opts.cls !== undefined) {
     el.classList.add(...toClassList(opts.cls));
   }
   if (opts.attr) {

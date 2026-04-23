@@ -83,9 +83,11 @@ module.exports = {
       severity: 'error',
       comment:
         'Production source under src/ must not depend on test/. Move shared fixtures ' +
-        'to a non-test location.',
+        'to a non-test location. Exception: tsconfig aliases `obsidian` to the mock so ' +
+        'tests can typecheck against the same surface used at runtime; that type-only ' +
+        'resolution never materializes as a runtime edge.',
       from: { path: '^src' },
-      to: { path: '^test' },
+      to: { path: '^test', pathNot: '^test/__mocks__/obsidian\\.ts$' },
     },
     {
       name: 'not-to-spec',
@@ -102,8 +104,7 @@ module.exports = {
       comment:
         'Production source under src/ must not import a devDependency. Move the package ' +
         "to 'dependencies', or add a pathNot exception for bundler-only shims. " +
-        "Exceptions: 'obsidian' is provided at runtime by the host app; 'tslib' is an " +
-        'import helper injected by the TypeScript compiler.',
+        "Exception: 'obsidian' is provided at runtime by the host app.",
       from: {
         path: '^src',
         pathNot: '[.](?:spec|test)[.](?:js|mjs|cjs|jsx|ts|mts|cts|tsx)$',
@@ -111,7 +112,7 @@ module.exports = {
       to: {
         dependencyTypes: ['npm-dev'],
         dependencyTypesNot: ['type-only'],
-        pathNot: ['node_modules/@types/', '^node_modules/obsidian/', '^node_modules/tslib/'],
+        pathNot: ['node_modules/@types/', '^node_modules/obsidian/'],
       },
     },
   ],

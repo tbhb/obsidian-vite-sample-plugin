@@ -199,7 +199,7 @@ class ViteSampleCardsBasesView extends BasesView {
     const order = config.getOrder();
 
     this.rootEl.empty();
-    this.rootEl.dataset.cardSize = cardSize;
+    this.rootEl.dataset['cardSize'] = cardSize;
 
     for (const group of this.data.groupedData) {
       const gridEl = this.rootEl.createDiv({ cls: 'vite-sample-bases-cards__grid' });

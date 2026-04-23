@@ -76,7 +76,7 @@ function runView(
   document.body.appendChild(containerEl);
   const view = getView(plugin, containerEl) as BasesView & { onDataUpdated: () => void };
   view.config = fakeConfig(config, order);
-  view.data = { groupedData: groups };
+  view.data = { data: [], groupedData: groups } as unknown as BasesView['data'];
   view.onDataUpdated();
   return containerEl;
 }
@@ -107,7 +107,9 @@ describe('registerBasesViewExamples', () => {
   it('is a no-op when registerBasesView is unavailable', () => {
     const plugin = makePlugin();
     (plugin as unknown as { registerBasesView: unknown }).registerBasesView = undefined;
-    expect(() => registerBasesViewExamples(plugin)).not.toThrow();
+    expect(() => {
+      registerBasesViewExamples(plugin);
+    }).not.toThrow();
     expect(plugin.__basesViews.size).toBe(0);
   });
 
@@ -217,7 +219,7 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
     expect(containerEl.querySelectorAll('.vite-sample-bases-list__separator')).toHaveLength(0);
   });
 
-  it('opens the file on primary click and ignores right-click', async () => {
+  it('opens the file on primary click and ignores right-click', () => {
     const plugin = makePlugin();
     const openSpy = vi.spyOn(plugin.app.workspace, 'openLinkText');
     const triggerSpy = vi.spyOn(plugin.app.workspace, 'trigger');
@@ -273,7 +275,7 @@ describe('ViteSampleCardsBasesView.onDataUpdated', () => {
     };
     const containerEl = run(plugin, {}, ['note.author'], ungrouped(entry));
 
-    expect(cardsRoot(containerEl)?.dataset.cardSize).toBe('medium');
+    expect(cardsRoot(containerEl)?.dataset['cardSize']).toBe('medium');
     expect(containerEl.querySelector('.vite-sample-bases-card__title')?.textContent).toBe('Apple');
     expect(containerEl.querySelector('.vite-sample-bases-card__label')?.textContent).toBe('author');
     expect(containerEl.querySelector('.vite-sample-bases-card__value')?.textContent).toBe('Alice');
@@ -297,7 +299,7 @@ describe('ViteSampleCardsBasesView.onDataUpdated', () => {
       ungrouped(entry),
     );
 
-    expect(cardsRoot(containerEl)?.dataset.cardSize).toBe('large');
+    expect(cardsRoot(containerEl)?.dataset['cardSize']).toBe('large');
     expect(containerEl.querySelectorAll('.vite-sample-bases-card__label')).toHaveLength(0);
     const values = containerEl.querySelectorAll('.vite-sample-bases-card__value');
     expect(values).toHaveLength(1);

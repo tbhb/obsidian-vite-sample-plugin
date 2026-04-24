@@ -455,7 +455,9 @@ class ButtonComponent extends ClickComponent {
 }
 
 class ExtraButtonComponent extends ClickComponent {
-  setIcon(_i: string): this {
+  icon = '';
+  setIcon(icon: string): this {
+    this.icon = icon;
     return this;
   }
   setTooltip(_t: string): this {
@@ -510,13 +512,15 @@ class ColorComponent extends ValueComponent<string> {
 
 class MomentFormatComponent extends ValueComponent<string> {
   sampleEl: HTMLElement | null = null;
+  defaultFormat = '';
   constructor() {
     super('');
   }
   setPlaceholder(_p: string): this {
     return this;
   }
-  setDefaultFormat(_f: string): this {
+  setDefaultFormat(format: string): this {
+    this.defaultFormat = format;
     return this;
   }
   setSampleEl(el: HTMLElement): this {

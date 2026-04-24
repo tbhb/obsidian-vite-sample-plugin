@@ -11,7 +11,8 @@
  */
 
 import { readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { access, mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { vi } from 'vitest';
 
 type AnyFn = (...args: unknown[]) => unknown;
@@ -99,12 +100,27 @@ export class Plugin extends Component {
     this.manifest = manifest;
   }
 
-  // Stubs use `async` so the inferred return type matches Obsidian's real
-  // Promise-returning signatures. No body to await.
-  // eslint-disable-next-line @typescript-eslint/require-await
-  loadData = vi.fn(async () => null as unknown);
-  // eslint-disable-next-line @typescript-eslint/require-await
-  saveData = vi.fn(async (_data: unknown) => undefined);
+  // When the Vault has a `DataAdapter` (as set by `createFilesystemVault`),
+  // load/save routes through `.obsidian/plugins/{manifest.id}/data.json` on
+  // disk so integration tests can round-trip settings. Without an adapter,
+  // the stubs keep their original `null`/no-op behavior so unit tests that
+  // don't wire an adapter stay unaffected.
+  loadData = vi.fn(async () => {
+    const adapter = this.app.vault.adapter;
+    const id = this.manifest['id'];
+    if (!adapter || typeof id !== 'string' || id === '') return null as unknown;
+    const path = `.obsidian/plugins/${id}/data.json`;
+    if (!(await adapter.exists(path))) return null as unknown;
+    return JSON.parse(await adapter.read(path)) as unknown;
+  });
+  saveData = vi.fn(async (data: unknown) => {
+    const adapter = this.app.vault.adapter;
+    const id = this.manifest['id'];
+    if (!adapter || typeof id !== 'string' || id === '') return;
+    const dir = `.obsidian/plugins/${id}`;
+    await adapter.mkdir(dir);
+    await adapter.write(`${dir}/data.json`, JSON.stringify(data, null, 2));
+  });
 
   addRibbonIcon = vi.fn((icon: string, title: string, callback: (evt: MouseEvent) => unknown) => {
     this.__ribbonIcons.push({ icon, title, callback });
@@ -181,7 +197,16 @@ interface WorkspaceOn {
   (event: string, cb: (...args: unknown[]) => unknown): WorkspaceEventRef;
 }
 
+export interface DataAdapter {
+  read(path: string): Promise<string>;
+  write(path: string, data: string): Promise<void>;
+  exists(path: string): Promise<boolean>;
+  remove(path: string): Promise<void>;
+  mkdir(path: string): Promise<void>;
+}
+
 export class Vault {
+  adapter?: DataAdapter;
   getFileByPath = vi.fn((_path: string) => null as TFile | null);
   getFolderByPath = vi.fn((_path: string) => null as TFolder | null);
   getAbstractFileByPath = vi.fn((_path: string) => null as TAbstractFile | null);
@@ -191,11 +216,43 @@ export class Vault {
   read = vi.fn(async (_file: TFile) => '');
 }
 
-// Factory for integration tests. Returns a Vault whose lookup and read
-// methods hit a real directory on disk, so plugin code can drive against
-// a vault fixture copied to a tmpdir.
+class FilesystemDataAdapter implements DataAdapter {
+  constructor(private readonly rootPath: string) {}
+
+  async read(path: string): Promise<string> {
+    return await readFile(join(this.rootPath, path), 'utf8');
+  }
+
+  async write(path: string, data: string): Promise<void> {
+    const absolute = join(this.rootPath, path);
+    await mkdir(dirname(absolute), { recursive: true });
+    await writeFile(absolute, data, 'utf8');
+  }
+
+  async exists(path: string): Promise<boolean> {
+    try {
+      await access(join(this.rootPath, path));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async remove(path: string): Promise<void> {
+    await unlink(join(this.rootPath, path));
+  }
+
+  async mkdir(path: string): Promise<void> {
+    await mkdir(join(this.rootPath, path), { recursive: true });
+  }
+}
+
+// Factory for integration tests. Returns a Vault whose lookup, read, and
+// `DataAdapter` methods hit a real directory on disk so plugin code can
+// drive against a vault fixture copied to a tmpdir.
 export function createFilesystemVault(rootPath: string): Vault {
   const vault = new Vault();
+  vault.adapter = new FilesystemDataAdapter(rootPath);
 
   const statAt = (relPath: string) => {
     try {

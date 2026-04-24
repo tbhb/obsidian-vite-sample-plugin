@@ -47,16 +47,22 @@ interface CapturedBasesView {
 
 const registries = {
   settings: [] as Setting[],
+  notices: [] as Notice[],
 };
 
 export function __resetObsidianMocks(): void {
   registries.settings.length = 0;
+  registries.notices.length = 0;
   Platform.isMobile = false;
   Platform.isDesktop = true;
 }
 
 export function __getSettings(): Setting[] {
   return [...registries.settings];
+}
+
+export function __getNotices(): Notice[] {
+  return [...registries.notices];
 }
 
 export class Component {
@@ -680,8 +686,10 @@ export class Modal {
 }
 
 export class Notice {
-  constructor(public message: string) {}
   hide = vi.fn();
+  constructor(public message: string) {
+    registries.notices.push(this);
+  }
 }
 
 export class ItemView extends Component {

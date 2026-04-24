@@ -6,7 +6,7 @@
   "vitest": {
     "configFile": "vitest.stryker.config.ts"
   },
-  "mutate": ["src/**/*.ts", "!src/examples/**"],
+  "mutate": ["src/**/*.ts"],
   "reporters": ["html", "clear-text", "progress"],
   "incremental": true,
   "thresholds": {

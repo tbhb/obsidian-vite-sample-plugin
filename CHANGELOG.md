@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0-beta.2](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.3.0-beta.2...0.4.0-beta.2) (2026-04-24)
+
+
+### Features
+
+* add Danger.js for diff-shape and PR-metadata gates ([#16](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/16)) ([c366568](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/c36656889474eb3766b92983610d97ce7e192259))
+* add property testing tier with fast-check ([#12](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/12)) ([08a34e5](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/08a34e57fca2ada7ae1aa496760eb5981ebdc2ab))
+* add Stryker mutation testing ([#14](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/14)) ([fd83d5c](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/fd83d5c314065c882078f65c2274b3a8069bb347))
+* cover src/examples with mutation testing ([#15](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/15)) ([02965fd](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/02965fd7d73dd0d891acb725242a88db210fe479))
+
+
+### Bug Fixes
+
+* **ci:** only require lockfile update when deps actually change ([#17](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/17)) ([bdc767d](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/bdc767d94c3892ce1d23fd9f7bb686403b14400a))
+
 ## [0.3.0-beta.2](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.2.1-beta.2...0.3.0-beta.2) (2026-04-24)
 
 

@@ -48,11 +48,13 @@ interface CapturedBasesView {
 const registries = {
   settings: [] as Setting[],
   notices: [] as Notice[],
+  openedModals: [] as Modal[],
 };
 
 export function __resetObsidianMocks(): void {
   registries.settings.length = 0;
   registries.notices.length = 0;
+  registries.openedModals.length = 0;
   Platform.isMobile = false;
   Platform.isDesktop = true;
 }
@@ -63,6 +65,10 @@ export function __getSettings(): Setting[] {
 
 export function __getNotices(): Notice[] {
   return [...registries.notices];
+}
+
+export function __getOpenedModals(): Modal[] {
+  return [...registries.openedModals];
 }
 
 export class Component {
@@ -679,7 +685,9 @@ export class Modal {
     this.titleEl = document.createElement('div');
     this.scope = new Scope();
   }
-  open = vi.fn();
+  open = vi.fn(() => {
+    registries.openedModals.push(this);
+  });
   close = vi.fn();
   onOpen(): void {}
   onClose(): void {}

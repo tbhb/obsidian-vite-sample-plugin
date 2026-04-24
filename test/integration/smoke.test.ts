@@ -37,7 +37,7 @@ describe('integration smoke', () => {
   });
 
   it('ships plugin manifest and data.json under .obsidian/plugins', () => {
-    const pluginDir = join(fixture.path, '.obsidian/plugins/obsidian-vite-sample-plugin');
+    const pluginDir = join(fixture.path, '.obsidian/plugins/vite-sample-plugin');
     const manifest = JSON.parse(readFileSync(join(pluginDir, 'manifest.json'), 'utf8')) as {
       id: string;
     };
@@ -45,7 +45,7 @@ describe('integration smoke', () => {
       greeting: string;
     };
 
-    expect(manifest.id).toBe('obsidian-vite-sample-plugin');
+    expect(manifest.id).toBe('vite-sample-plugin');
     expect(data.greeting).toBe('Hello from the fixture vault');
   });
 });

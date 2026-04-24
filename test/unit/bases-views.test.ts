@@ -30,7 +30,7 @@ interface FakeGroup {
 }
 
 function makePlugin(): ViteSamplePlugin {
-  return new ViteSamplePlugin(new App() as never, { id: 'obsidian-vite-sample-plugin' } as never);
+  return new ViteSamplePlugin(new App() as never, { id: 'vite-sample-plugin' } as never);
 }
 
 function val(text: string): ValueLike {

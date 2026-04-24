@@ -14,7 +14,7 @@ describe('view rendered against fixture-loaded plugin', () => {
     fixture = copyFixtureToTmp();
     const app = new App();
     app.vault = createFilesystemVault(fixture.path);
-    plugin = new ViteSamplePlugin(app as never, { id: 'obsidian-vite-sample-plugin' } as never);
+    plugin = new ViteSamplePlugin(app as never, { id: 'vite-sample-plugin' } as never);
     await plugin.onload();
 
     view = new ViteSampleView(new WorkspaceLeaf(), plugin);

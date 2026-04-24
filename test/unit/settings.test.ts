@@ -23,7 +23,7 @@ import { DEFAULT_SETTINGS, mergeSettings, ViteSampleSettingTab } from '../../src
 describe('DEFAULT_SETTINGS', () => {
   it('matches the shipped defaults exactly', () => {
     expect(DEFAULT_SETTINGS).toEqual({
-      greeting: 'Hello from obsidian-vite-sample-plugin',
+      greeting: 'Hello from vite-sample-plugin',
       greetingNotes: '',
       filter: '',
       theme: 'auto',

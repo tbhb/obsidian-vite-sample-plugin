@@ -2,7 +2,7 @@ import type ViteSamplePlugin from '../main';
 
 const TICK_FLOOR_MINUTES = 1;
 const MS_PER_MINUTE = 60 * 1000;
-const TICK_LOG_LINE = '[obsidian-vite-sample-plugin] tick';
+const TICK_LOG_LINE = '[vite-sample-plugin] tick';
 
 // Pull the arithmetic out of the class so the minute-to-millisecond
 // conversion and the sub-minute floor each have a direct unit test.

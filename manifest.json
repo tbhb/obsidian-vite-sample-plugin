@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-vite-sample-plugin",
+  "id": "vite-sample-plugin",
   "name": "Vite Sample Plugin",
   "version": "0.4.0",
   "minAppVersion": "1.7.2",
-  "description": "A modern Obsidian plugin scaffold built with Vite 8, Tailwind 4, and Vitest.",
+  "description": "Starter template for Obsidian plugin developers using Vite, Tailwind, and Vitest.",
   "author": "tbhb",
   "authorUrl": "https://github.com/tbhb",
   "isDesktopOnly": false

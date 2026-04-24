@@ -15,7 +15,7 @@ export interface ViteSamplePluginSettings {
 }
 
 export const DEFAULT_SETTINGS: ViteSamplePluginSettings = {
-  greeting: 'Hello from obsidian-vite-sample-plugin',
+  greeting: 'Hello from vite-sample-plugin',
   greetingNotes: '',
   filter: '',
   theme: 'auto',

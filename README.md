@@ -1,4 +1,6 @@
-# obsidian-vite-sample-plugin
+<!-- vale vite-sample-plugin.HeadingTitleCase = NO -->
+# Obsidian Vite Sample Plugin
+<!-- vale vite-sample-plugin.HeadingTitleCase = YES -->
 
 A modern [Obsidian][obsidian] plugin scaffold built with [Vite 8][vite] ([Rolldown][rolldown]), [Tailwind CSS 4][tailwind], [Vitest 4][vitest], [Testing Library][testing-library], [Biome 2][biome], [TypeScript][typescript] 5.8+, and [pnpm][pnpm].
 

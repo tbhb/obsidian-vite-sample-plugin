@@ -4,7 +4,7 @@ import { registerRibbonExample } from '../../src/examples/ribbon';
 import ViteSamplePlugin from '../../src/main';
 
 function makePlugin(): ViteSamplePlugin {
-  return new ViteSamplePlugin(new App() as never, { id: 'obsidian-vite-sample-plugin' } as never);
+  return new ViteSamplePlugin(new App() as never, { id: 'vite-sample-plugin' } as never);
 }
 
 describe('registerRibbonExample', () => {

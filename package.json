@@ -25,7 +25,7 @@
     "lint:knip": "knip",
     "lint:markdown": "rumdl check .",
     "lint:markdown:fix": "rumdl check --fix .",
-    "lint:prose": "vale --glob='!{.vale/**,node_modules/**,coverage/**,dist/**,tmp/**,CHANGELOG.md}' .",
+    "lint:prose": "vale --glob='!{.claude/**,.vale/**,node_modules/**,coverage/**,dist/**,tmp/**,CHANGELOG.md}' .",
     "lint:spelling": "cspell --no-progress --no-summary --gitignore .",
     "lint:staged": "nano-staged",
     "lint:yaml": "yamllint --strict .",

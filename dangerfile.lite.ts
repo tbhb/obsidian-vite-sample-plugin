@@ -313,15 +313,23 @@ function addedKeys(
   return afterKeys.filter((key) => !beforeKeys.has(key));
 }
 
+function dependencyMapsDiffer(
+  before: Record<string, string> | undefined,
+  after: Record<string, string> | undefined,
+): boolean {
+  const beforeEntries = Object.entries(before ?? {});
+  const afterEntries = Object.entries(after ?? {});
+  if (beforeEntries.length !== afterEntries.length) return true;
+  const beforeMap = new Map(beforeEntries);
+  for (const [name, version] of afterEntries) {
+    if (beforeMap.get(name) !== version) return true;
+  }
+  return false;
+}
+
 function checkDependencyDelta(base: string): void {
   const files = allChangedFiles();
   const packageChanged = files.includes('package.json');
-  const lockChanged = files.includes('pnpm-lock.yaml');
-  if (packageChanged && !lockChanged) {
-    fail(
-      '`package.json` changed without a corresponding `pnpm-lock.yaml` update. Run `pnpm install`.',
-    );
-  }
   if (!packageChanged) return;
   const before = readPackageJson(base);
   const after = readPackageJson(null);
@@ -330,6 +338,13 @@ function checkDependencyDelta(base: string): void {
     { label: 'devDependencies', before: before.devDependencies, after: after.devDependencies },
     { label: 'peerDependencies', before: before.peerDependencies, after: after.peerDependencies },
   ];
+  const depsChanged = groups.some((group) => dependencyMapsDiffer(group.before, group.after));
+  const lockChanged = files.includes('pnpm-lock.yaml');
+  if (depsChanged && !lockChanged) {
+    fail(
+      '`package.json` dependencies changed without a corresponding `pnpm-lock.yaml` update. Run `pnpm install`.',
+    );
+  }
   for (const group of groups) {
     const added = addedKeys(group.before, group.after);
     if (added.length === 0) continue;

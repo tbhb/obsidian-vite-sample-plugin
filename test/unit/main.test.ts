@@ -404,8 +404,6 @@ describe('ViteSamplePlugin.restartTick / stopTick', () => {
     expect(() => {
       plugin.onunload();
     }).not.toThrow();
-    // onunload delegates to tick.stop(); without this assertion, emptying the
-    // method body would still pass the suite.
     expect(stopSpy).toHaveBeenCalled();
   });
 });
@@ -430,8 +428,6 @@ describe('ViteSamplePlugin activateView paths', () => {
 
     plugin.onUserEnable();
     await new Promise((r) => setTimeout(r, 0));
-    // Obsidian's `false` arg means "reuse an existing right sidebar split".
-    // Asserting the literal keeps a boolean mutation from surviving.
     expect(getRightLeaf).toHaveBeenCalledWith(false);
     expect(leaf.setViewState).toHaveBeenCalledWith({
       type: VITE_SAMPLE_VIEW_TYPE,
@@ -470,8 +466,6 @@ describe('ViteSamplePlugin refreshOpenViews via saveSettings', () => {
 
     await plugin.saveSettings();
     expect(renderSpy).toHaveBeenCalled();
-    // The instanceof guard has to reject non-ViteSampleView leaves. Without
-    // this assertion, mutating the guard to `true` passes the suite.
     expect(foreignRender).not.toHaveBeenCalled();
   });
 });

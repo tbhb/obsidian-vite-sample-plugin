@@ -21,9 +21,6 @@ import ViteSamplePlugin from '../../src/main';
 import { DEFAULT_SETTINGS, mergeSettings, ViteSampleSettingTab } from '../../src/settings';
 
 describe('DEFAULT_SETTINGS', () => {
-  // Asserts every field against inline literals rather than DEFAULT_SETTINGS
-  // itself, so mutations to the declaration fail here rather than round-trip
-  // through a self-referential comparison.
   it('matches the shipped defaults exactly', () => {
     expect(DEFAULT_SETTINGS).toEqual({
       greeting: 'Hello from obsidian-vite-sample-plugin',

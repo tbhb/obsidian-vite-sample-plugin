@@ -155,5 +155,7 @@ export default defineConfig(
     'styles.css',
     'versions.json',
     '.husky',
+    '.stryker-tmp',
+    'reports',
   ]),
 );

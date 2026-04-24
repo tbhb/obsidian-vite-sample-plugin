@@ -3,6 +3,7 @@ autorelease
 autoupdate
 biomejs
 collab
+commitlintrc
 cooldown
 depcruise
 dependabot

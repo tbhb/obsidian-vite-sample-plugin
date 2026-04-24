@@ -46,6 +46,9 @@ export class ViteSampleSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
+    // Mutation testing disabled for UI copy in this block. See AGENTS.md,
+    // "Mutation testing" section, for the policy.
+    // Stryker disable StringLiteral,ObjectLiteral
     // Raw HTML elements live alongside Setting rows. Use createEl so the
     // plugin stays compliant with Obsidian's no-innerHTML rule.
     const intro = containerEl.createEl('p', {
@@ -212,5 +215,6 @@ export class ViteSampleSettingTab extends PluginSettingTab {
             this.display();
           }),
       );
+    // Stryker restore StringLiteral,ObjectLiteral
   }
 }

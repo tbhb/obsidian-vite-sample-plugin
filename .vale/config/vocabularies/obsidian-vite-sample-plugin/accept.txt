@@ -59,6 +59,7 @@ shellcheck
 sigstore
 SLSA
 src
+Stryker
 subcommand
 structuredClone
 substring

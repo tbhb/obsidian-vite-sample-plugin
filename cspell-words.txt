@@ -27,6 +27,7 @@ shellcheck
 sigstore
 SLSA
 sonarjs
+stryker
 tailwindcss
 tbhb
 tfthacker

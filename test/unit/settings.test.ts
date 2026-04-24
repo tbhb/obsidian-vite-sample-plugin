@@ -20,6 +20,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ViteSamplePlugin from '../../src/main';
 import { DEFAULT_SETTINGS, mergeSettings, ViteSampleSettingTab } from '../../src/settings';
 
+describe('DEFAULT_SETTINGS', () => {
+  it('matches the shipped defaults exactly', () => {
+    expect(DEFAULT_SETTINGS).toEqual({
+      greeting: 'Hello from obsidian-vite-sample-plugin',
+      greetingNotes: '',
+      filter: '',
+      theme: 'auto',
+      accentColor: '#7c3aed',
+      dateFormat: 'YYYY-MM-DD',
+      enableStatusBar: true,
+      tickIntervalMinutes: 5,
+    });
+  });
+});
+
 describe('mergeSettings', () => {
   it('returns defaults when stored data is null', () => {
     expect(mergeSettings(null)).toEqual(DEFAULT_SETTINGS);
@@ -103,6 +118,7 @@ describe('ViteSampleSettingTab.display', () => {
     tab.display();
     plugin.settings.greeting = 'changed';
     const extra = findSetting('Greeting').components[1] as ExtraButtonComponent;
+    expect(extra.icon).toBe('rotate-ccw');
     const displaySpy = vi.spyOn(tab, 'display');
     await extra.__trigger();
     expect(plugin.settings.greeting).toBe(DEFAULT_SETTINGS.greeting);
@@ -153,6 +169,7 @@ describe('ViteSampleSettingTab.display', () => {
     const moment = setting.components[0] as MomentFormatComponent;
     expect(moment.sampleEl).not.toBeNull();
     expect(setting.settingEl.querySelector('small')).toBe(moment.sampleEl);
+    expect(moment.defaultFormat).toBe('YYYY-MM-DD');
     await moment.__trigger('DD/MM/YYYY');
     expect(plugin.settings.dateFormat).toBe('DD/MM/YYYY');
     expect(plugin.saveData).toHaveBeenCalled();

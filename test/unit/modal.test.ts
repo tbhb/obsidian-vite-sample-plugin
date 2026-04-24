@@ -21,6 +21,8 @@ describe('ViteSampleModal', () => {
     modal.onOpen();
 
     expect(modal.titleEl).toHaveTextContent('Sample message');
+    const bodyEl = modal.contentEl.querySelector('.vite-sample-modal__body');
+    expect(bodyEl).not.toBeNull();
     const body = within(modal.contentEl);
     expect(body.getByText('hello world')).toBeInTheDocument();
     expect(getByText(modal.contentEl, /press escape/i)).toBeInTheDocument();

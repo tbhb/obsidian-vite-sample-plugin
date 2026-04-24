@@ -400,9 +400,11 @@ describe('ViteSamplePlugin.restartTick / stopTick', () => {
   it('onunload handles an already-stopped tick (tickHandle === null)', () => {
     const plugin = makePlugin();
     expect(plugin.tick.intervalHandle).toBeNull();
+    const stopSpy = vi.spyOn(plugin.tick, 'stop');
     expect(() => {
       plugin.onunload();
     }).not.toThrow();
+    expect(stopSpy).toHaveBeenCalled();
   });
 });
 
@@ -421,11 +423,12 @@ describe('ViteSamplePlugin activateView paths', () => {
     const plugin = makePlugin();
     const leaf = new WorkspaceLeaf();
     vi.spyOn(plugin.app.workspace, 'getLeavesOfType').mockReturnValue([]);
-    vi.spyOn(plugin.app.workspace, 'getRightLeaf').mockReturnValue(leaf);
+    const getRightLeaf = vi.spyOn(plugin.app.workspace, 'getRightLeaf').mockReturnValue(leaf);
     const reveal = vi.spyOn(plugin.app.workspace, 'revealLeaf');
 
     plugin.onUserEnable();
     await new Promise((r) => setTimeout(r, 0));
+    expect(getRightLeaf).toHaveBeenCalledWith(false);
     expect(leaf.setViewState).toHaveBeenCalledWith({
       type: VITE_SAMPLE_VIEW_TYPE,
       active: true,
@@ -456,11 +459,13 @@ describe('ViteSamplePlugin refreshOpenViews via saveSettings', () => {
     const renderSpy = vi.spyOn(matchingView, 'render');
 
     const foreignLeaf = new WorkspaceLeaf();
-    foreignLeaf.view = { render: vi.fn() };
+    const foreignRender = vi.fn();
+    foreignLeaf.view = { render: foreignRender };
 
     vi.spyOn(plugin.app.workspace, 'getLeavesOfType').mockReturnValue([matchingLeaf, foreignLeaf]);
 
     await plugin.saveSettings();
     expect(renderSpy).toHaveBeenCalled();
+    expect(foreignRender).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,12 @@
 import { __resetObsidianMocks, App, type BasesView, type QueryController } from 'obsidian';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  CARDS_VIEW_OPTIONS,
+  DEFAULT_LIST_SEPARATOR,
+  isFileNameProperty,
+  LIST_VIEW_OPTIONS,
   registerBasesViewExamples,
+  resolveSeparator,
   VITE_SAMPLE_CARDS_BASES_VIEW_TYPE,
   VITE_SAMPLE_LIST_BASES_VIEW_TYPE,
 } from '../../src/examples/bases-views';
@@ -103,6 +108,96 @@ beforeEach(() => {
   __resetObsidianMocks();
 });
 
+describe('bases-view constants and helpers', () => {
+  it('exposes the view types that Bases registers against', async () => {
+    // Dynamic re-import forces module evaluation under the active mutant.
+    // A static import can freeze the constant value before Stryker applies
+    // the mutation if the worker already cached the module.
+    vi.resetModules();
+    const mod = await import('../../src/examples/bases-views');
+    expect(mod.VITE_SAMPLE_LIST_BASES_VIEW_TYPE).toBe('vite-sample-bases-list');
+    expect(mod.VITE_SAMPLE_CARDS_BASES_VIEW_TYPE).toBe('vite-sample-bases-cards');
+
+    const plugin = makePlugin();
+    mod.registerBasesViewExamples(plugin);
+    expect(Array.from(plugin.__basesViews.keys())).toEqual([
+      'vite-sample-bases-list',
+      'vite-sample-bases-cards',
+    ]);
+  });
+
+  it('pins the list view option metadata by equality', () => {
+    // jscpd:ignore-start
+    expect(LIST_VIEW_OPTIONS).toEqual([
+      {
+        type: 'text',
+        key: 'separator',
+        displayName: 'Property separator',
+        default: ' · ',
+      },
+      {
+        type: 'toggle',
+        key: 'showGroupHeadings',
+        displayName: 'Show group headings',
+        default: true,
+      },
+    ]);
+    // jscpd:ignore-end
+    expect(DEFAULT_LIST_SEPARATOR).toBe(' · ');
+  });
+
+  it('pins the cards view option metadata by equality', () => {
+    // jscpd:ignore-start
+    expect(CARDS_VIEW_OPTIONS).toEqual([
+      {
+        type: 'dropdown',
+        key: 'cardSize',
+        displayName: 'Card size',
+        default: 'medium',
+        options: {
+          small: 'Small',
+          medium: 'Medium',
+          large: 'Large',
+        },
+      },
+      {
+        type: 'toggle',
+        key: 'showLabels',
+        displayName: 'Show property labels',
+        default: true,
+      },
+    ]);
+    // jscpd:ignore-end
+  });
+
+  describe('resolveSeparator', () => {
+    it('returns the raw value when it is a non-empty string', () => {
+      expect(resolveSeparator(' / ')).toBe(' / ');
+      expect(resolveSeparator('x')).toBe('x');
+    });
+
+    it('falls back to the default on empty or non-string values', () => {
+      expect(resolveSeparator('')).toBe(' · ');
+      expect(resolveSeparator(undefined)).toBe(' · ');
+      expect(resolveSeparator(null)).toBe(' · ');
+      expect(resolveSeparator(42)).toBe(' · ');
+      expect(resolveSeparator({})).toBe(' · ');
+    });
+  });
+
+  describe('isFileNameProperty', () => {
+    it('returns true only for (file, name)', () => {
+      expect(isFileNameProperty('file', 'name')).toBe(true);
+    });
+
+    it('returns false when either half does not match', () => {
+      expect(isFileNameProperty('file', 'path')).toBe(false);
+      expect(isFileNameProperty('note', 'name')).toBe(false);
+      expect(isFileNameProperty('note', 'path')).toBe(false);
+    });
+  });
+});
+
 describe('registerBasesViewExamples', () => {
   it('is a no-op when registerBasesView is unavailable', () => {
     const plugin = makePlugin();
@@ -149,6 +244,9 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
     };
     const containerEl = run(plugin, {}, ['file.name', 'note.tags'], grouped('Fruits', entry));
 
+    expect(containerEl.querySelector('.vite-sample-bases-list')).not.toBeNull();
+    expect(containerEl.querySelector('.vite-sample-bases-list__group')).not.toBeNull();
+    expect(containerEl.querySelector('.vite-sample-bases-list__items')).not.toBeNull();
     expect(containerEl.querySelector('.vite-sample-bases-list__group-heading')?.textContent).toBe(
       'Fruits',
     );
@@ -173,18 +271,25 @@ describe('ViteSampleListBasesView.onDataUpdated', () => {
     );
   });
 
-  it('hides group headings when showGroupHeadings is false', () => {
+  it('hides group headings when showGroupHeadings is false and honors an explicit separator', () => {
     const plugin = makePlugin();
-    const entry = fileEntry({ path: 'x.md', basename: 'x' }, { 'note.tags': 'alpha' });
+    const entry = fileEntry(
+      { path: 'x.md', basename: 'x' },
+      { 'note.a': 'alpha', 'note.b': 'beta' },
+    );
     const containerEl = run(
       plugin,
       { showGroupHeadings: false, separator: ' / ' },
-      ['note.tags'],
+      ['note.a', 'note.b'],
       grouped('Fruits', entry),
     );
 
     expect(containerEl.querySelector('.vite-sample-bases-list__group-heading')).toBeNull();
-    expect(containerEl.querySelector('.vite-sample-bases-list__value')?.textContent).toBe('alpha');
+    expect(containerEl.querySelector('.vite-sample-bases-list__separator')?.textContent).toBe(
+      ' / ',
+    );
+    const values = containerEl.querySelectorAll('.vite-sample-bases-list__value');
+    expect(Array.from(values).map((v) => v.textContent)).toEqual(['alpha', 'beta']);
   });
 
   it('omits the heading when the group has no key', () => {
@@ -276,6 +381,9 @@ describe('ViteSampleCardsBasesView.onDataUpdated', () => {
     const containerEl = run(plugin, {}, ['note.author'], ungrouped(entry));
 
     expect(cardsRoot(containerEl)?.dataset['cardSize']).toBe('medium');
+    expect(containerEl.querySelector('.vite-sample-bases-cards__grid')).not.toBeNull();
+    expect(containerEl.querySelector('.vite-sample-bases-card')).not.toBeNull();
+    expect(containerEl.querySelector('.vite-sample-bases-card__properties')).not.toBeNull();
     expect(containerEl.querySelector('.vite-sample-bases-card__title')?.textContent).toBe('Apple');
     expect(containerEl.querySelector('.vite-sample-bases-card__label')?.textContent).toBe('author');
     expect(containerEl.querySelector('.vite-sample-bases-card__value')?.textContent).toBe('Alice');

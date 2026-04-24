@@ -1,4 +1,6 @@
 import {
+  __getNotices,
+  __getOpenedModals,
   __resetObsidianMocks,
   App,
   MarkdownView,
@@ -10,6 +12,7 @@ import {
 } from 'obsidian';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ViteSamplePlugin from '../../src/main';
+import { ViteSampleModal } from '../../src/modal';
 import { DEFAULT_SETTINGS } from '../../src/settings';
 import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from '../../src/view';
 
@@ -62,7 +65,7 @@ describe('ViteSamplePlugin.refreshStatusBar', () => {
     // One call per item: the grouped greeting item, plus the separate fruits item.
     expect(plugin.addStatusBarItem).toHaveBeenCalledTimes(2);
     expect(plugin.statusBar.items).toHaveLength(2);
-    expect(plugin.statusBar.items[0]?.textContent).toContain(DEFAULT_SETTINGS.greeting);
+    expect(plugin.statusBar.items[0]?.textContent).toBe(`👋 ${DEFAULT_SETTINGS.greeting}`);
     expect(plugin.statusBar.items[1]?.textContent).toBe('🍎🍌');
   });
 
@@ -105,14 +108,14 @@ describe('ViteSamplePlugin.onload', () => {
 
     expect(plugin.__viewFactories.has(VITE_SAMPLE_VIEW_TYPE)).toBe(true);
     expect(plugin.__ribbonIcons).toHaveLength(1);
-    expect(plugin.__commands.map((c) => c.id)).toEqual([
-      'show-greeting-notice',
-      'open-sample-modal',
-      'insert-greeting',
-      'uppercase-selection',
-      'wrap-selection-in-greeting',
-      'close-sample-view',
-      'open-sample-view',
+    expect(plugin.__commands.map((c) => ({ id: c.id, name: c.name }))).toEqual([
+      { id: 'show-greeting-notice', name: 'Show greeting notice' },
+      { id: 'open-sample-modal', name: 'Open sample modal' },
+      { id: 'insert-greeting', name: 'Insert greeting at cursor' },
+      { id: 'uppercase-selection', name: 'Uppercase current selection' },
+      { id: 'wrap-selection-in-greeting', name: 'Wrap selection in greeting' },
+      { id: 'close-sample-view', name: 'Close sample view' },
+      { id: 'open-sample-view', name: 'Open sample view' },
     ]);
     expect(plugin.__settingTabs).toHaveLength(1);
     expect(plugin.__protocolHandlers.has('vite-sample')).toBe(true);
@@ -166,19 +169,26 @@ describe('ViteSamplePlugin registered callbacks', () => {
     expect(spy).toHaveBeenCalledWith(VITE_SAMPLE_VIEW_TYPE);
   });
 
-  it('show-greeting-notice command runs without throwing', () => {
+  it('show-greeting-notice command shows a Notice with the current greeting', () => {
     const cmd = plugin.__findCommand('show-greeting-notice');
-    expect(() => cmd?.callback?.()).not.toThrow();
+    cmd?.callback?.();
+    const notices = __getNotices();
+    expect(notices.at(-1)?.message).toBe(DEFAULT_SETTINGS.greeting);
   });
 
-  it('open-sample-modal command opens a modal', () => {
+  it('open-sample-modal command opens a ViteSampleModal', () => {
     const cmd = plugin.__findCommand('open-sample-modal');
-    expect(() => cmd?.callback?.()).not.toThrow();
+    cmd?.callback?.();
+    const modals = __getOpenedModals();
+    expect(modals).toHaveLength(1);
+    expect(modals[0]).toBeInstanceOf(ViteSampleModal);
   });
 
   it('open-sample-view command activates the view', () => {
+    const activateSpy = vi.spyOn(plugin, 'activateView').mockResolvedValue();
     const cmd = plugin.__findCommand('open-sample-view');
-    expect(() => cmd?.callback?.()).not.toThrow();
+    cmd?.callback?.();
+    expect(activateSpy).toHaveBeenCalled();
   });
 
   it('insert-greeting editorCheckCallback branches on view type and checking flag', () => {
@@ -303,7 +313,9 @@ describe('ViteSamplePlugin registered callbacks', () => {
     const [item] = menu.__getMenuItems();
     expect(item?.title).toBe('Print file path');
     expect(item?.icon).toBe('document');
-    expect(() => item?.__trigger()).not.toThrow();
+    item?.__trigger();
+    const notices = __getNotices();
+    expect(notices.at(-1)?.message).toBe('notes/hello.md');
   });
 
   function editorMenuCase(selection = '') {
@@ -329,6 +341,7 @@ describe('ViteSamplePlugin registered callbacks', () => {
     const items = menu.__getMenuItems();
     expect(items).toHaveLength(1);
     expect(items[0]?.title).toBe('Insert greeting');
+    expect(items[0]?.icon).toBe('message-square');
     items[0]?.__trigger();
     expect(editor.replaceSelection).toHaveBeenCalledWith(DEFAULT_SETTINGS.greeting);
   });
@@ -340,7 +353,9 @@ describe('ViteSamplePlugin registered callbacks', () => {
 
     const items = menu.__getMenuItems();
     expect(items).toHaveLength(2);
+    expect(items[0]?.icon).toBe('message-square');
     expect(items[1]?.title).toBe('Uppercase selection');
+    expect(items[1]?.icon).toBe('case-sensitive');
 
     items[0]?.__trigger();
     expect(editor.replaceSelection).toHaveBeenLastCalledWith(DEFAULT_SETTINGS.greeting);

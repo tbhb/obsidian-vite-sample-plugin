@@ -1,8 +1,7 @@
 import { execSync } from 'node:child_process';
 
-// Danger injects these as globals at runtime. Its shipped typings declare them
-// inside a module scope, so they can't be imported or referenced as ambient
-// globals. Declare the narrow surface the dangerfile actually uses.
+// Runtime globals injected by Danger. Declared locally because the package
+// types are module-scoped and can't resolve as ambient globals.
 interface DangerCommit {
   readonly sha: string;
   readonly message: string;

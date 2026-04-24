@@ -13,7 +13,10 @@ cspell
 createDiv
 createEl
 cwd
+[Dd]anger
+[Dd]angerfile
 [Dd]ependabot
+[Gg]lobals
 [Dd]evDependenc(?:y|ies)
 ESLint
 eslint-disable

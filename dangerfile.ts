@@ -1,6 +1,6 @@
 import './dangerfile.lite';
 
-// Danger injects these as globals at runtime; declare the surface this file uses.
+// Runtime globals injected by Danger. Declared locally for the same reason as dangerfile.lite.ts.
 interface DangerContext {
   readonly github?: {
     readonly pr?: {

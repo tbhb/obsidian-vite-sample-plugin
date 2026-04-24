@@ -54,10 +54,13 @@ scaffold
 semver
 setText
 shellcheck
+[Tt]oEqual
+[Tt]oStrictEqual
 sigstore
 SLSA
 src
 subcommand
+structuredClone
 substring
 Tailwind
 tmpdir

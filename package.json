@@ -4,6 +4,11 @@
   "description": "Starter template for Obsidian plugin developers using Vite, Tailwind, and Vitest.",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=22.22.0 <23",
+    "pnpm": ">=10"
+  },
   "scripts": {
     "prepare": "husky",
     "dev": "vite build --watch",

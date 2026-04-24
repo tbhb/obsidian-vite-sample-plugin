@@ -17,7 +17,6 @@ concurrency:
 
 env:
   NODE_VERSION: "24"
-  PNPM_VERSION: "10"
   # Opt JS-based actions into the Node 24 runtime early (the default flip
   # happens 2026-06-02). Silences deprecation warnings on older actions.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -32,8 +31,6 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5.0.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f  # v6.3.0

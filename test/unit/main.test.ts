@@ -1,4 +1,5 @@
 import {
+  __getNotices,
   __resetObsidianMocks,
   App,
   MarkdownView,
@@ -62,7 +63,7 @@ describe('ViteSamplePlugin.refreshStatusBar', () => {
     // One call per item: the grouped greeting item, plus the separate fruits item.
     expect(plugin.addStatusBarItem).toHaveBeenCalledTimes(2);
     expect(plugin.statusBar.items).toHaveLength(2);
-    expect(plugin.statusBar.items[0]?.textContent).toContain(DEFAULT_SETTINGS.greeting);
+    expect(plugin.statusBar.items[0]?.textContent).toBe(`👋 ${DEFAULT_SETTINGS.greeting}`);
     expect(plugin.statusBar.items[1]?.textContent).toBe('🍎🍌');
   });
 
@@ -303,7 +304,9 @@ describe('ViteSamplePlugin registered callbacks', () => {
     const [item] = menu.__getMenuItems();
     expect(item?.title).toBe('Print file path');
     expect(item?.icon).toBe('document');
-    expect(() => item?.__trigger()).not.toThrow();
+    item?.__trigger();
+    const notices = __getNotices();
+    expect(notices.at(-1)?.message).toBe('notes/hello.md');
   });
 
   function editorMenuCase(selection = '') {
@@ -329,6 +332,7 @@ describe('ViteSamplePlugin registered callbacks', () => {
     const items = menu.__getMenuItems();
     expect(items).toHaveLength(1);
     expect(items[0]?.title).toBe('Insert greeting');
+    expect(items[0]?.icon).toBe('message-square');
     items[0]?.__trigger();
     expect(editor.replaceSelection).toHaveBeenCalledWith(DEFAULT_SETTINGS.greeting);
   });
@@ -340,7 +344,9 @@ describe('ViteSamplePlugin registered callbacks', () => {
 
     const items = menu.__getMenuItems();
     expect(items).toHaveLength(2);
+    expect(items[0]?.icon).toBe('message-square');
     expect(items[1]?.title).toBe('Uppercase selection');
+    expect(items[1]?.icon).toBe('case-sensitive');
 
     items[0]?.__trigger();
     expect(editor.replaceSelection).toHaveBeenLastCalledWith(DEFAULT_SETTINGS.greeting);

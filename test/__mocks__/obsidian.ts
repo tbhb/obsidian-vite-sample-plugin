@@ -10,6 +10,8 @@
  * Extend this file as you need more of the API surface in your tests.
  */
 
+import { readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { vi } from 'vitest';
 
 type AnyFn = (...args: unknown[]) => unknown;
@@ -179,6 +181,80 @@ interface WorkspaceOn {
   (event: string, cb: (...args: unknown[]) => unknown): WorkspaceEventRef;
 }
 
+export class Vault {
+  getFileByPath = vi.fn((_path: string) => null as TFile | null);
+  getFolderByPath = vi.fn((_path: string) => null as TFolder | null);
+  getAbstractFileByPath = vi.fn((_path: string) => null as TAbstractFile | null);
+  // `async` keeps the return type aligned with Obsidian's real Promise-
+  // returning signature. No body to await.
+  // eslint-disable-next-line @typescript-eslint/require-await
+  read = vi.fn(async (_file: TFile) => '');
+}
+
+// Factory for integration tests. Returns a Vault whose lookup and read
+// methods hit a real directory on disk, so plugin code can drive against
+// a vault fixture copied to a tmpdir.
+export function createFilesystemVault(rootPath: string): Vault {
+  const vault = new Vault();
+
+  const statAt = (relPath: string) => {
+    try {
+      return statSync(join(rootPath, relPath));
+    } catch {
+      return null;
+    }
+  };
+
+  vault.getFileByPath = vi.fn((path: string) => {
+    const stats = statAt(path);
+    return stats?.isFile() === true ? makeTFile(path) : null;
+  });
+
+  vault.getFolderByPath = vi.fn((path: string) => {
+    const stats = statAt(path);
+    return stats?.isDirectory() === true ? makeTFolder(path) : null;
+  });
+
+  vault.getAbstractFileByPath = vi.fn((path: string) => {
+    const stats = statAt(path);
+    if (stats?.isFile() === true) return makeTFile(path);
+    if (stats?.isDirectory() === true) return makeTFolder(path);
+    return null;
+  });
+
+  vault.read = vi.fn(
+    // eslint-disable-next-line @typescript-eslint/require-await
+    async (file: TFile) => readFileSync(join(rootPath, file.path), 'utf8'),
+  );
+
+  return vault;
+}
+
+function makeTFile(path: string): TFile {
+  const file = new TFile();
+  file.path = path;
+  const lastSlash = path.lastIndexOf('/');
+  const name = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+  file.name = name;
+  const dot = name.lastIndexOf('.');
+  if (dot > 0) {
+    file.basename = name.slice(0, dot);
+    file.extension = name.slice(dot + 1);
+  } else {
+    file.basename = name;
+    file.extension = '';
+  }
+  return file;
+}
+
+function makeTFolder(path: string): TFolder {
+  const folder = new TFolder();
+  folder.path = path;
+  const lastSlash = path.lastIndexOf('/');
+  folder.name = lastSlash >= 0 ? path.slice(lastSlash + 1) : path;
+  return folder;
+}
+
 export class App {
   workspace: {
     getLeavesOfType: (type: string) => WorkspaceLeaf[];
@@ -191,7 +267,7 @@ export class App {
     trigger: (name: string, ...args: unknown[]) => void;
     __eventHandlers: CapturedWorkspaceEvent[];
   };
-  vault: Record<string, unknown>;
+  vault: Vault;
   metadataCache: Record<string, unknown>;
   fileManager: Record<string, unknown>;
 
@@ -217,10 +293,7 @@ export class App {
       trigger: vi.fn((_name: string, ..._args: unknown[]) => undefined),
       __eventHandlers: eventHandlers,
     };
-    this.vault = {
-      getFileByPath: vi.fn(() => null),
-      getFolderByPath: vi.fn(() => null),
-    };
+    this.vault = new Vault();
     this.metadataCache = {};
     this.fileManager = {};
   }

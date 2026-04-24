@@ -4,8 +4,8 @@ import {
   registerBasesViewExamples,
   VITE_SAMPLE_CARDS_BASES_VIEW_TYPE,
   VITE_SAMPLE_LIST_BASES_VIEW_TYPE,
-} from '../src/examples/bases-views';
-import ViteSamplePlugin from '../src/main';
+} from '../../src/examples/bases-views';
+import ViteSamplePlugin from '../../src/main';
 
 // Lightweight shapes that mirror the touched parts of the Bases API. Kept
 // local so the tests stay decoupled from Obsidian's real type graph.

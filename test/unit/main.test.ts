@@ -9,9 +9,9 @@ import {
   WorkspaceLeaf,
 } from 'obsidian';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import ViteSamplePlugin from '../src/main';
-import { DEFAULT_SETTINGS } from '../src/settings';
-import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from '../src/view';
+import ViteSamplePlugin from '../../src/main';
+import { DEFAULT_SETTINGS } from '../../src/settings';
+import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from '../../src/view';
 
 function makePlugin(): ViteSamplePlugin {
   return new ViteSamplePlugin(new App() as never, { id: 'obsidian-vite-sample-plugin' } as never);

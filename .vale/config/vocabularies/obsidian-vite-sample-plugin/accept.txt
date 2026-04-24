@@ -12,6 +12,7 @@ commitlint
 cspell
 createDiv
 createEl
+cwd
 [Dd]ependabot
 [Dd]evDependenc(?:y|ies)
 ESLint
@@ -59,6 +60,7 @@ src
 subcommand
 substring
 Tailwind
+tmpdir
 tsc
 [Tt]sconfigs?
 [Tt]ypecheck

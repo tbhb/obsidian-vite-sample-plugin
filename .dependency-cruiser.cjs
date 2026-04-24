@@ -33,9 +33,10 @@ module.exports = {
           '(^|/)src/main[.]ts$',
           // Vitest test files are entry points registered by the runner.
           '(^|/)test/.*[.]test[.]ts$',
-          // Vitest setup file and mock, wired in through vitest.config.ts
+          // Vitest setup files and mock, wired in through vitest.config.ts
           // setupFiles and resolve.alias string paths (no direct import edge).
-          '(^|/)test/setup[.]ts$',
+          '(^|/)test/setup-dom[.]ts$',
+          '(^|/)test/(?:unit|integration)/setup[.]ts$',
           '(^|/)test/__mocks__/.*[.]ts$',
         ],
       },

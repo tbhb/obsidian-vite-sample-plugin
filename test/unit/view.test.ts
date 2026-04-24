@@ -28,7 +28,10 @@ describe('ViteSampleView', () => {
   });
 
   it('exposes the expected view type, display name, and icon', () => {
-    expect(view.getViewType()).toBe(VITE_SAMPLE_VIEW_TYPE);
+    // Use an inline literal so a mutation on VITE_SAMPLE_VIEW_TYPE fails the
+    // assertion rather than round-tripping through the constant.
+    expect(VITE_SAMPLE_VIEW_TYPE).toBe('vite-sample-view');
+    expect(view.getViewType()).toBe('vite-sample-view');
     expect(view.getDisplayText()).toBe('Vite sample');
     expect(view.getIcon()).toBe('sparkles');
   });

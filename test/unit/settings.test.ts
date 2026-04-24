@@ -17,8 +17,8 @@ import {
   type ToggleComponent,
 } from 'obsidian';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import ViteSamplePlugin from '../src/main';
-import { DEFAULT_SETTINGS, mergeSettings, ViteSampleSettingTab } from '../src/settings';
+import ViteSamplePlugin from '../../src/main';
+import { DEFAULT_SETTINGS, mergeSettings, ViteSampleSettingTab } from '../../src/settings';
 
 describe('mergeSettings', () => {
   it('returns defaults when stored data is null', () => {

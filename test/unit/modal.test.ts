@@ -1,7 +1,7 @@
 import { getByText, queryByText, within } from '@testing-library/dom';
 import { App } from 'obsidian';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ViteSampleModal } from '../src/modal';
+import { ViteSampleModal } from '../../src/modal';
 
 describe('ViteSampleModal', () => {
   let modal: ViteSampleModal;

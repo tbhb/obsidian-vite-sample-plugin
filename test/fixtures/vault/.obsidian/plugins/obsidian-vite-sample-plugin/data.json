@@ -1,0 +1,10 @@
+{
+  "greeting": "Hello from the fixture vault",
+  "greetingNotes": "Notes/hello.md",
+  "filter": "",
+  "theme": "dark",
+  "accentColor": "#22d3ee",
+  "dateFormat": "YYYY-MM-DD",
+  "enableStatusBar": true,
+  "tickIntervalMinutes": 10
+}

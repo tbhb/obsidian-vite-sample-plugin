@@ -2,9 +2,9 @@ import { getByRole, getByText, queryByRole, within } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event';
 import { WorkspaceLeaf } from 'obsidian';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type ViteSamplePlugin from '../src/main';
-import { DEFAULT_SETTINGS, type ViteSamplePluginSettings } from '../src/settings';
-import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from '../src/view';
+import type ViteSamplePlugin from '../../src/main';
+import { DEFAULT_SETTINGS, type ViteSamplePluginSettings } from '../../src/settings';
+import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from '../../src/view';
 
 function makeView(settings: ViteSamplePluginSettings): ViteSampleView {
   // The view only touches `plugin.settings`, so a structural stub is enough.

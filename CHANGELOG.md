@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.4.0...0.4.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* **ci:** auto-detect GitHub prerelease flag from semver qualifier ([#19](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/19)) ([0525480](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/0525480e38e27e9bdd0fb54bbd34610b59863786))
+* **ci:** scope manifest.json release-managed check to the version field ([#22](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/22)) ([9c232a1](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/9c232a1e1cc62095374adf5e399ac8af60d1fd86))
+
 ## [0.4.0](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.4.0-beta.2...0.4.0) (2026-04-24)
 
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repository. The scaffold targets the current [Obsidian][obsidian] plugin API and builds with [Vite 8][vite] ([Rolldown][rolldown]), [Tailwind CSS 4][tailwind], [Vitest 4][vitest], [Testing Library][testing-library], [fast-check][fast-check], [Biome 2][biome], [dependency-cruiser][depcruise], [jscpd][jscpd], [Knip 6][knip], [TypeScript][typescript], and [pnpm][pnpm].
+Guidance for AI coding agents working in this repository. The scaffold targets the current [Obsidian][obsidian] plugin API and builds with [Vite 8][vite] ([Rolldown][rolldown]), [Tailwind CSS 4][tailwind], [Vitest 4][vitest], [Testing Library][testing-library], [fast-check][fast-check], [Stryker 9][stryker], [Biome 2][biome], [dependency-cruiser][depcruise], [jscpd][jscpd], [Knip 6][knip], [TypeScript][typescript], and [pnpm][pnpm].
 
 [obsidian]: https://obsidian.md/
 [vite]: https://vite.dev/
@@ -9,6 +9,7 @@ Guidance for AI coding agents working in this repository. The scaffold targets t
 [vitest]: https://vitest.dev/
 [testing-library]: https://testing-library.com/
 [fast-check]: https://fast-check.dev/
+[stryker]: https://stryker-mutator.io/
 [biome]: https://biomejs.dev/
 [depcruise]: https://github.com/sverweij/dependency-cruiser
 [jscpd]: https://github.com/kucherenko/jscpd
@@ -53,15 +54,18 @@ test/
 └── property/               # fast-check property tests over pure logic
 .github/
 ├── workflows/ci.yml        # Lint, Build, Test, Documentation jobs
+├── workflows/mutation.yml  # Stryker mutation tests with incremental cache
 ├── workflows/release.yml   # release-please + build + attest + upload
 ├── release-please-config.json
 ├── release-please-manifest.json
 └── dependabot.yml
+scripts/
+└── stryker-changed.mjs     # diff-scoped mutation run for local and agent use
 manifest.json               # Obsidian plugin manifest
 versions.json               # plugin version -> minAppVersion map
 ```
 
-Config lives at the repo root: `biome.json`, `eslint.config.mts`, `.dependency-cruiser.cjs`, `.jscpd.json`, `.knip.json`, `.cspell.json` + `cspell-words.txt`, `.rumdl.toml`, `.vale.ini` + `.vale/`, `.yamllint.yaml` + `.yamllintignore`, `.commitlintrc.ts`, `vite.config.ts`, `vitest.config.ts`, and `tsconfig.json`.
+Config lives at the repo root: `biome.json`, `eslint.config.mts`, `.dependency-cruiser.cjs`, `.jscpd.json`, `.knip.json`, `.cspell.json` + `cspell-words.txt`, `.rumdl.toml`, `.vale.ini` + `.vale/`, `.yamllint.yaml` + `.yamllintignore`, `.commitlintrc.ts`, `stryker.config.json`, `vite.config.ts`, `vitest.config.ts`, `vitest.stryker.config.ts`, and `tsconfig.json`.
 
 ## Commands reference
 
@@ -74,6 +78,8 @@ pnpm test:unit        # vitest run --project=unit
 pnpm test:integration # vitest run --project=integration
 pnpm test:property    # vitest run --project=property
 pnpm test:coverage    # vitest run --project=unit --coverage, enforces 100% thresholds
+pnpm test:mutation    # stryker run, full mutation pass with incremental reuse
+pnpm test:mutation:changed # stryker scoped to src diff vs STRYKER_BASE (default origin/main)
 pnpm typecheck        # tsc --noEmit across src + test
 pnpm format           # biome format --write
 pnpm format:markdown  # rumdl fmt .
@@ -115,6 +121,19 @@ pnpm vale:sync        # download vale style packages
 
 [fast-check-vitest]: https://github.com/dubzzz/fast-check/tree/main/packages/vitest
 
+## Mutation testing
+
+[Stryker 9][stryker] gates the four core modules at 100% mutation score. Coverage alone only proves a line ran. Mutation testing proves a test would fail if that line changed. Treat mutation survivors the way you'd treat coverage gaps. Fix the tests, or restructure the source so the survivors move into a pure function whose output a test can pin by equality.
+
+- The Vitest runner reads `vitest.stryker.config.ts`, which narrows execution to the unit project. Integration fixtures and property iterations stay out of mutation runs.
+- Scope: `mutate: src/**/*.ts` minus `src/examples/**`. The examples directory ships as canonical reference for plugin authors. Its survivors reflect demo-style copy-paste code rather than real logic gaps. Revisit when examples go through their own design pass.
+- The break threshold sits at 100 for every non-examples file. Don't lower it without a concrete reason and a follow-up task to restore it.
+- Pure core plus thin wiring. Stryker drives you toward this shape. `src/view.ts` shows it. `buildViteSampleViewModel` returns all static copy and CSS classes as data. `render()` maps the data to `createEl` calls. One `toEqual` test pins the entire content surface. Adopt the same shape for any module that accumulates survivors.
+- Stryker directive comments suppress mutant classes that don't belong under mutation testing. `src/settings.ts` `display()` wraps the Setting rows in a block-scoped `// Stryker disable StringLiteral,ObjectLiteral` comment. Every behavior-bearing string in that block already has an assertion elsewhere, covering the docs link URL, section names, dropdown option keys, the reset icon, and `setDefaultFormat`. If a new `Setting` row adds a call whose string literal carries behavior, precede that line with `// Stryker restore next-line StringLiteral` so Stryker re-instruments it.
+- `pnpm test:mutation` runs the full pass. `reports/stryker-incremental.json` lets repeated runs reuse prior results, so later invocations finish in seconds.
+- `pnpm test:mutation:changed` scopes `--mutate` to `src/*.ts` changed against `origin/main`. Override the base with `STRYKER_BASE=origin/beta pnpm test:mutation:changed`. Use this during feature work for fast feedback on the files you just edited.
+- Pre-push doesn't run mutation testing. The `mutation.yml` CI workflow enforces the break threshold on every pull request and every `main` push. It caches the incremental report per ref with a fallback to `main`, so PRs branching from a cached main finish inside 30 seconds.
+
 ## Documentation linting
 
 Every markdown, YAML, and workflow file ships through a gate before landing:
@@ -133,7 +152,7 @@ Add new technical terms to `cspell-words.txt`. Avoid em-dashes entirely, use com
 - husky hooks, installed automatically by `pnpm install`:
   - `pre-commit` runs `nano-staged` across the staged files
   - `commit-msg` runs commitlint
-  - `pre-push` runs the full gate: `lint:all`, `typecheck`, `build`, `test:coverage`, mirroring CI
+  - `pre-push` runs the full gate: `lint:all`, `typecheck`, `build`, `test:coverage`, mirroring CI (mutation tests run in CI only)
 - Never use `--no-verify`. Fix the underlying failure.
 - Work on a feature branch, open a PR, and merge via squash.
 
@@ -164,13 +183,14 @@ Add new technical terms to `cspell-words.txt`. Avoid em-dashes entirely, use com
 ## Rules at a glance
 
 - Run the full gate before pushing.
-- Add new technical terms to `cspell-words.txt`.
+- Add new technical terms to `cspell-words.txt` and, for terms that appear in prose, to `.vale/config/vocabularies/obsidian-vite-sample-plugin/accept.txt`.
 - Write reference-style markdown links with definitions at the bottom of the paragraph.
 - Avoid em-dashes, passive voice, and italicized copulas in prose.
 - Keep paragraphs on one line. No hard wrap.
 - Don't force-push to `main`. Don't force-push release-please PR branches either. Those force-pushes orphan the `autorelease: tagged` label that release-please relies on to track the last released commit.
 - Don't bypass hooks.
 - Don't hand-edit release-managed files.
+- Don't lower Stryker's break threshold or widen the `src/examples/**` exclusion without a concrete reason.
 
 ## Further reading
 

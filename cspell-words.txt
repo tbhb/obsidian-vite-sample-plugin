@@ -5,6 +5,7 @@ biomejs
 collab
 commitlintrc
 cooldown
+dangerfile
 depcruise
 dependabot
 gitignored
@@ -16,6 +17,7 @@ knip
 lezer
 linktext
 nanostaged
+numstat
 obsidianmd
 parentheticals
 pipefail

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0-beta.2](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.2.1-beta.2...0.3.0-beta.2) (2026-04-24)
+
+
+### Features
+
+* add integration test tier with vault fixture ([#9](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/9)) ([8558145](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/85581458e4988b339ad3e30b01aef9ac0a900cfb))
+* add integration tests for plugin settings and view rendering ([#10](https://github.com/tbhb/obsidian-vite-sample-plugin/issues/10)) ([3cc842b](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/3cc842ba170df0877fd1c726849ad4ee07bfc5ec))
+
 ## [0.2.1-beta.2](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.2.1-beta.1...0.2.1-beta.2) (2026-04-23)
 
 

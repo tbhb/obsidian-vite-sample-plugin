@@ -74,7 +74,7 @@ export default defineConfig(
   // Root-level config files run in Node, not the browser, and have no reason
   // to use `obsidianmd` rules. All three sit in tsconfig's `include`.
   {
-    files: ['vite.config.ts', 'vitest.config.ts', '.commitlintrc.ts'],
+    files: ['vite.config.ts', 'vitest.config.ts', 'vitest.stryker.config.ts', '.commitlintrc.ts'],
     languageOptions: {
       parser: tseslint.parser,
       globals: {

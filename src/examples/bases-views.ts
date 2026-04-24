@@ -16,6 +16,60 @@ import type ViteSamplePlugin from '../main';
 export const VITE_SAMPLE_LIST_BASES_VIEW_TYPE = 'vite-sample-bases-list';
 export const VITE_SAMPLE_CARDS_BASES_VIEW_TYPE = 'vite-sample-bases-cards';
 
+export const DEFAULT_LIST_SEPARATOR = ' · ';
+
+// Option metadata for each view lives as an exported constant so tests can
+// pin the exact schema by equality. The view-registration path just points
+// at these, and Bases calls the `options` factory to read them.
+export const LIST_VIEW_OPTIONS: readonly BasesAllOptions[] = [
+  {
+    type: 'text',
+    key: 'separator',
+    displayName: 'Property separator',
+    default: DEFAULT_LIST_SEPARATOR,
+  },
+  {
+    type: 'toggle',
+    key: 'showGroupHeadings',
+    displayName: 'Show group headings',
+    default: true,
+  },
+];
+
+export const CARDS_VIEW_OPTIONS: readonly BasesAllOptions[] = [
+  {
+    type: 'dropdown',
+    key: 'cardSize',
+    displayName: 'Card size',
+    default: 'medium',
+    options: {
+      small: 'Small',
+      medium: 'Medium',
+      large: 'Large',
+    },
+  },
+  {
+    type: 'toggle',
+    key: 'showLabels',
+    displayName: 'Show property labels',
+    default: true,
+  },
+];
+
+// Resolves the separator config value. Empty strings and non-string values
+// fall back to DEFAULT_LIST_SEPARATOR so the UI always has something to
+// render between property values.
+export function resolveSeparator(raw: unknown): string {
+  return typeof raw === 'string' && raw ? raw : DEFAULT_LIST_SEPARATOR;
+}
+
+// Bases property IDs are `<type>.<name>` pairs. The list view renders the
+// `file.name` property as an internal link, and every other property as a
+// plain value span.
+export function isFileNameProperty(type: string, name: string): boolean {
+  return type === 'file' && name === 'name';
+}
+
 export function registerBasesViewExamples(plugin: ViteSamplePlugin): void {
   // Obsidian 1.10 added Bases views. Feature-detect so the plugin still
   // loads on older vaults that match the manifest's minAppVersion.
@@ -28,45 +82,14 @@ export function registerBasesViewExamples(plugin: ViteSamplePlugin): void {
     icon: 'list',
     factory: (controller, containerEl) =>
       new ViteSampleListBasesView(controller, containerEl, plugin),
-    options: (): BasesAllOptions[] => [
-      {
-        type: 'text',
-        key: 'separator',
-        displayName: 'Property separator',
-        default: ' · ',
-      },
-      {
-        type: 'toggle',
-        key: 'showGroupHeadings',
-        displayName: 'Show group headings',
-        default: true,
-      },
-    ],
+    options: () => [...LIST_VIEW_OPTIONS],
   });
 
   plugin.registerBasesView(VITE_SAMPLE_CARDS_BASES_VIEW_TYPE, {
     name: 'Vite sample cards',
     icon: 'layout-grid',
     factory: (controller, containerEl) => new ViteSampleCardsBasesView(controller, containerEl),
-    options: (): BasesAllOptions[] => [
-      {
-        type: 'dropdown',
-        key: 'cardSize',
-        displayName: 'Card size',
-        default: 'medium',
-        options: {
-          small: 'Small',
-          medium: 'Medium',
-          large: 'Large',
-        },
-      },
-      {
-        type: 'toggle',
-        key: 'showLabels',
-        displayName: 'Show property labels',
-        default: true,
-      },
-    ],
+    options: () => [...CARDS_VIEW_OPTIONS],
   });
 }
 
@@ -85,8 +108,7 @@ class ViteSampleListBasesView extends BasesView implements HoverParent {
 
   onDataUpdated(): void {
     const config: BasesViewConfig = this.config;
-    const rawSeparator = config.get('separator');
-    const separator = typeof rawSeparator === 'string' && rawSeparator ? rawSeparator : ' · ';
+    const separator = resolveSeparator(config.get('separator'));
     const showGroupHeadings = config.get('showGroupHeadings') !== false;
     const order = config.getOrder();
 
@@ -142,7 +164,7 @@ class ViteSampleListBasesView extends BasesView implements HoverParent {
       firstProp = false;
 
       const { type, name } = parsePropertyId(propertyId);
-      if (type === 'file' && name === 'name') {
+      if (isFileNameProperty(type, name)) {
         this.renderFileLink(itemEl, entry.file.path, text);
       } else {
         itemEl.createSpan({

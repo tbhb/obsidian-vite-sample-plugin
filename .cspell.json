@@ -18,10 +18,10 @@
   ],
   "dictionaryDefinitions": [
     {
-      "name": "obsidian-vite-sample-plugin",
+      "name": "vite-sample-plugin",
       "path": "./cspell-words.txt",
       "addWords": true
     }
   ],
-  "dictionaries": ["obsidian-vite-sample-plugin"]
+  "dictionaries": ["vite-sample-plugin"]
 }

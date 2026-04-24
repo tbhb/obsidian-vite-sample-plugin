@@ -17,7 +17,7 @@ import { DEFAULT_SETTINGS } from '../../src/settings';
 import { VITE_SAMPLE_VIEW_TYPE, ViteSampleView } from '../../src/view';
 
 function makePlugin(): ViteSamplePlugin {
-  return new ViteSamplePlugin(new App() as never, { id: 'obsidian-vite-sample-plugin' } as never);
+  return new ViteSamplePlugin(new App() as never, { id: 'vite-sample-plugin' } as never);
 }
 
 beforeEach(() => {

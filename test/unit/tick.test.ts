@@ -5,7 +5,7 @@ import ViteSamplePlugin from '../../src/main';
 import { DEFAULT_SETTINGS } from '../../src/settings';
 
 function makePlugin(): ViteSamplePlugin {
-  return new ViteSamplePlugin(new App() as never, { id: 'obsidian-vite-sample-plugin' } as never);
+  return new ViteSamplePlugin(new App() as never, { id: 'vite-sample-plugin' } as never);
 }
 
 describe('computeTickIntervalMs', () => {
@@ -26,7 +26,7 @@ describe('tickCallback', () => {
     const spy = vi.spyOn(console, 'debug').mockImplementation(() => {});
     try {
       tickCallback();
-      expect(spy).toHaveBeenCalledWith('[obsidian-vite-sample-plugin] tick');
+      expect(spy).toHaveBeenCalledWith('[vite-sample-plugin] tick');
     } finally {
       spy.mockRestore();
     }

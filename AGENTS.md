@@ -179,12 +179,12 @@ Add new technical terms to `cspell-words.txt`. Avoid em-dashes entirely, use com
 - Register listeners and intervals via `this.registerDomEvent()` and `this.registerInterval()` so they unload with the plugin.
 - Gate desktop-only features behind `Platform.isMobile` checks.
 - Use `createEl`, `createDiv`, and `createSpan` helpers. Never set `innerHTML`.
-- The plugin id `obsidian-vite-sample-plugin` must match the folder name under `.obsidian/plugins/` for local development.
+- The plugin id `vite-sample-plugin` must match the folder name under `.obsidian/plugins/` for local development.
 
 ## Rules at a glance
 
 - Run the full gate before pushing.
-- Add new technical terms to `cspell-words.txt` and, for terms that appear in prose, to `.vale/config/vocabularies/obsidian-vite-sample-plugin/accept.txt`.
+- Add new technical terms to `cspell-words.txt` and, for terms that appear in prose, to `.vale/config/vocabularies/vite-sample-plugin/accept.txt`.
 - Write reference-style markdown links with definitions at the bottom of the paragraph.
 - Avoid em-dashes, passive voice, and italicized copulas in prose.
 - Keep paragraphs on one line. No hard wrap.

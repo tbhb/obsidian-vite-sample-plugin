@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-vite-sample-plugin",
+  "name": "vite-sample-plugin",
   "version": "0.4.0",
-  "description": "A modern Obsidian plugin scaffold built with Vite 8, Tailwind 4, and Vitest.",
+  "description": "Starter template for Obsidian plugin developers using Vite, Tailwind, and Vitest.",
   "private": true,
   "type": "module",
   "scripts": {

@@ -6,7 +6,7 @@ import ViteSamplePlugin from '../../src/main';
 import { DEFAULT_SETTINGS } from '../../src/settings';
 import { copyFixtureToTmp, type VaultFixture } from './fixture';
 
-const PLUGIN_ID = 'obsidian-vite-sample-plugin';
+const PLUGIN_ID = 'vite-sample-plugin';
 const DATA_JSON = `.obsidian/plugins/${PLUGIN_ID}/data.json`;
 
 function buildPlugin(vaultPath: string): ViteSamplePlugin {

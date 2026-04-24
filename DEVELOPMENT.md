@@ -43,7 +43,7 @@ Before the first run, sync Vale's style packages:
 pnpm vale:sync
 ```
 
-That downloads Google, write-good, proselint, and the AI-tells packages into `.vale/`. The downloads go into gitignored subdirectories. The project-specific style under `.vale/obsidian-vite-sample-plugin/` and the vocabulary under `.vale/config/vocabularies/obsidian-vite-sample-plugin/` stay committed.
+That downloads Google, write-good, proselint, and the AI-tells packages into `.vale/`. The downloads go into gitignored subdirectories. The project-specific style under `.vale/vite-sample-plugin/` and the vocabulary under `.vale/config/vocabularies/vite-sample-plugin/` stay committed.
 
 ## Development loop
 
@@ -92,7 +92,7 @@ Each `lint:*` script runs a single tool. Check `package.json` for the full list.
 - **Biome complains about formatting.** Run `pnpm format`. Biome handles indentation, quote style, trailing commas, and import sort automatically.
 - **ESLint flags an Obsidian rule.** Read the rule name, then jump to `eslint-plugin-obsidianmd` docs. Most fixes rename a class or swap an `innerHTML` call for a `createEl` call.
 - **rumdl reports `MD040` missing language.** Add a language hint after the opening triple backticks. Use `text` for plain output.
-- **vale reports unknown words.** Add the term to `.vale/config/vocabularies/obsidian-vite-sample-plugin/accept.txt`. The file accepts one regular expression per line.
+- **vale reports unknown words.** Add the term to `.vale/config/vocabularies/vite-sample-plugin/accept.txt`. The file accepts one regular expression per line.
 - **cspell reports unknown words.** Add them to `cspell-words.txt`, one per line.
 - **yamllint reports a long line.** Break the value across lines with a folded scalar, or add `# yamllint disable-line rule:line-length` at the end of the line.
 - **actionlint reports a shellcheck issue.** Most of these flag unquoted variables. Fix them in place.
@@ -170,7 +170,7 @@ A clean exit means sigstore confirms the asset matches the one the release workf
 
 ## Testing the plugin inside Obsidian
 
-With `pnpm dev` running, open your vault. Go to **Settings → Community plugins**, then toggle **obsidian-vite-sample-plugin** on. The plugin registers an "Open Vite sample view" ribbon icon, four commands under **Cmd-P**, a settings tab with a greeting field plus a status-bar toggle and a tick-interval slider, and an `obsidian://vite-sample` protocol handler that logs its parameters.
+With `pnpm dev` running, open your vault. Go to **Settings → Community plugins**, then toggle **vite-sample-plugin** on. The plugin registers an "Open Vite sample view" ribbon icon, four commands under **Cmd-P**, a settings tab with a greeting field plus a status-bar toggle and a tick-interval slider, and an `obsidian://vite-sample` protocol handler that logs its parameters.
 
 Edits to `src/` rebuild automatically. Reload the plugin with the [Hot Reload][hot-reload] community plugin to pick up the new build without restarting Obsidian.
 
@@ -194,7 +194,7 @@ Run `pnpm run prepare` to regenerate the `.husky/_` wrapper directory.
 
 ### `vale` complains about unknown words
 
-Extend `.vale/config/vocabularies/obsidian-vite-sample-plugin/accept.txt`. That file takes one regular expression per line. Prefer spelling out proper names in full and reach for a broad pattern like `[A-Z]{2,}` only as a last resort.
+Extend `.vale/config/vocabularies/vite-sample-plugin/accept.txt`. That file takes one regular expression per line. Prefer spelling out proper names in full and reach for a broad pattern like `[A-Z]{2,}` only as a last resort.
 
 ### CI fails on a rumdl rule for `CHANGELOG.md`
 

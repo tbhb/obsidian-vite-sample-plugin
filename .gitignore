@@ -24,8 +24,9 @@ node_modules
 /styles.css
 /styles.css.map
 
-# obsidian runtime data
-data.json
+# obsidian runtime data (anchored so fixture data.json files under
+# test/fixtures/ stay committed).
+/data.json
 
 # test output
 coverage

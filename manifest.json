@@ -1,7 +1,7 @@
 {
   "id": "vite-sample-plugin",
   "name": "Vite Sample Plugin",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "minAppVersion": "1.7.2",
   "description": "Starter template for Obsidian plugin developers using Vite, Tailwind, and Vitest.",
   "author": "tbhb",

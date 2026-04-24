@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.4.0-beta.2...0.4.0) (2026-04-24)
+
+
+### Miscellaneous Chores
+
+* **release:** promote 0.4.0-beta.2 to stable 0.4.0 ([d3ccc3d](https://github.com/tbhb/obsidian-vite-sample-plugin/commit/d3ccc3d5bc59e374c6e8749c3acc2eb33c54cf44))
+
 ## [0.4.0-beta.2](https://github.com/tbhb/obsidian-vite-sample-plugin/compare/0.3.0-beta.2...0.4.0-beta.2) (2026-04-24)
 
 
